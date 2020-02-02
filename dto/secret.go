@@ -7,13 +7,20 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/satori/go.uuid"
+
+	"github.com/yeo/bima/shield"
 )
 
 type Token struct {
 	ID      string
 	Name    string
-	Token   string
+	Token   []byte
 	Version int
+}
+
+func (t *Token) DecryptToken() string {
+	return string(shield.Decrypt(t.Token, "godfather"))
+
 }
 
 var dbConn *sql.DB
@@ -32,7 +39,8 @@ func LoadTokens() ([]*Token, error) {
 	defer rows.Close()
 	tokens := make([]*Token, 0)
 	for rows.Next() {
-		var id, name, token string
+		var id, name string
+		var token []byte
 		err = rows.Scan(&id, &name, &token)
 
 		if err != nil {
@@ -67,7 +75,9 @@ func AddSecret(name, token string) error {
 	//		return fmt.Errorf("Error when generating uuid %+w", err)
 	//	}
 
-	_, err = stmt.Exec(u.String(), name, token)
+	encryptedToken := shield.Encrypt([]byte(token), "godfather")
+
+	_, err = stmt.Exec(u.String(), name, string(encryptedToken))
 	if err != nil {
 		return fmt.Errorf("Error when executing statement %+w", err)
 	}

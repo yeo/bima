@@ -20,7 +20,7 @@ func DrawCode(w fyne.Window, header *widget.Box) {
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
 	if err == nil {
 		for _, token := range tokens {
-			otpCode, _ := totp.GenerateCode(token.Token, time.Now())
+			otpCode, _ := totp.GenerateCode(token.DecryptToken(), time.Now())
 			log.Println("Render for", token.Name)
 
 			lbl := canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0})

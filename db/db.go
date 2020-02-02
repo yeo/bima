@@ -47,7 +47,9 @@ func Setup() (*sql.DB, error) {
 
 	if needSetup {
 		sqlStmt := `
-	CREATE TABLE secret (id text not null primary key, name text, token text, version integer DEFAULT 1);
+	CREATE TABLE migration (version string);
+	CREATE TABLE config (name text not null primary key, value text, scope text);
+	CREATE TABLE secret (id text not null primary key, name text, token blob, version integer DEFAULT 1);
 	`
 		_, err := db.Exec(sqlStmt)
 		if err != nil {

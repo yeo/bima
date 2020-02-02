@@ -28,8 +28,9 @@ func main() {
 	}
 
 	addButton := render.DrawNewCode(w.Canvas())
+	settingButton := render.DrawSetting(w.Canvas())
 
-	header := widget.NewHBox(searchBox, addButton)
+	header := widget.NewHBox(searchBox, addButton, settingButton)
 
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, codeContainer)
@@ -43,7 +44,6 @@ func main() {
 	dto.SetDB(dbCon)
 
 	go func() {
-		render.DrawCode(w, header)
 		secs := time.Now().Unix()
 		remainder := secs % 30
 		time.Sleep(time.Duration(30-remainder) * time.Second)
@@ -57,6 +57,7 @@ func main() {
 			}
 		}
 	}()
+	render.DrawCode(w, header)
 
 	w.Resize(fyne.NewSize(350, 600))
 	w.ShowAndRun()
