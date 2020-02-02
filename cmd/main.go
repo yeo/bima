@@ -46,7 +46,8 @@ func main() {
 		render.DrawCode(w, header)
 		secs := time.Now().Unix()
 		remainder := secs % 30
-		time.Sleep(time.Duration(remainder) * time.Second)
+		time.Sleep(time.Duration(30-remainder) * time.Second)
+		log.Println("Sleep to rounded time", remainder)
 		render.DrawCode(w, header)
 		ticker := time.NewTicker(30 * time.Second)
 		for {
