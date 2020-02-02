@@ -2,6 +2,7 @@ package render
 
 import (
 	"image/color"
+	"log"
 	"time"
 
 	"fyne.io/fyne"
@@ -16,16 +17,35 @@ import (
 func DrawCode(w fyne.Window, header *widget.Box) {
 	tokens, err := dto.LoadTokens()
 
-	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(2))
+	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
 	if err == nil {
 		for _, token := range tokens {
+			log.Println("Got token", token)
 			otpCode, _ := totp.GenerateCode(token.Token, time.Now())
+			log.Println("Got otp code", otpCode)
 
+			lbl := canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0})
+			codeContainer.AddObject(lbl)
 			t := canvas.NewText(otpCode, color.RGBA{10, 200, 200, 0})
 			codeContainer.AddObject(t)
+
+			var btn *widget.Button
+			btn = widget.NewButton("Copy", func() {
+				w.Clipboard().SetContent(otpCode)
+				btn.SetText("Copied √")
+				timer2 := time.NewTimer(time.Second * 10)
+				go func() {
+					<-timer2.C
+					if btn != nil {
+						btn.SetText("Copy")
+					}
+				}()
+			})
+
+			codeContainer.AddObject(btn)
 		}
 	}
 
-	container := fyne.NewContainerWithLayout(layout.NewGridLayout(2), header, codeContainer)
+	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, codeContainer)
 	w.SetContent(container)
 }

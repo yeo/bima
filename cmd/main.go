@@ -20,17 +20,19 @@ import (
 
 func main() {
 	a := app.New()
-
 	w := a.NewWindow("primary")
 
-	header := widget.NewVBox(
-		widget.NewLabel("Hello Fyne!"),
-		widget.NewButton("Quit", func() {
-			a.Quit()
-		}))
+	searchBox := &widget.Entry{
+		PlaceHolder: "Search",
+		MultiLine:   false,
+	}
 
-	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(2))
-	container := fyne.NewContainerWithLayout(layout.NewGridLayout(2), header, codeContainer)
+	addButton := render.DrawNewCode(w.Canvas())
+
+	header := widget.NewHBox(searchBox, addButton)
+
+	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
+	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, codeContainer)
 
 	w.SetContent(container)
 
@@ -44,7 +46,6 @@ func main() {
 		render.DrawCode(w, header)
 		secs := time.Now().Unix()
 		remainder := secs % 30
-		fmt.Println("we need to sleep %s", remainder)
 		time.Sleep(time.Duration(remainder) * time.Second)
 		render.DrawCode(w, header)
 		ticker := time.NewTicker(30 * time.Second)
@@ -56,7 +57,7 @@ func main() {
 		}
 	}()
 
-	w.Resize(fyne.NewSize(250, 600))
+	w.Resize(fyne.NewSize(350, 600))
 	w.ShowAndRun()
 	cleanup(dbCon)
 }

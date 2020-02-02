@@ -3,14 +3,17 @@ package dto
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/satori/go.uuid"
 )
 
 type Token struct {
-	ID    int
-	Name  string
-	Token string
+	ID      string
+	Name    string
+	Token   string
+	Version int
 }
 
 var dbConn *sql.DB
@@ -29,14 +32,13 @@ func LoadTokens() ([]*Token, error) {
 	defer rows.Close()
 	tokens := make([]*Token, 0)
 	for rows.Next() {
-		var id int
-		var name, token string
+		var id, name, token string
 		err = rows.Scan(&id, &name, &token)
 
 		if err != nil {
 			fmt.Println("Error fetching", err)
 		}
-		tokens = append(tokens, &Token{id, name, token})
+		tokens = append(tokens, &Token{id, name, token, 1})
 	}
 
 	err = rows.Err()
@@ -47,6 +49,29 @@ func LoadTokens() ([]*Token, error) {
 	return tokens, nil
 }
 
-func AddToken(name, token, url string) error {
+func AddSecret(name, token string) error {
+	tx, err := dbConn.Begin()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	stmt, err := tx.Prepare("INSERT INTO secret(id, name, token) values(?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	u := uuid.NewV4()
+	//	if err != nil {
+	//		fmt.Printf("Something went wrong: %s", err)
+	//		return fmt.Errorf("Error when generating uuid %+w", err)
+	//	}
+
+	_, err = stmt.Exec(u.String(), name, token)
+	if err != nil {
+		return fmt.Errorf("Error when executing statement %+w", err)
+	}
+	tx.Commit()
+
 	return nil
 }
