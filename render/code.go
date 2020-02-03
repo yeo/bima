@@ -11,16 +11,20 @@ import (
 	"fyne.io/fyne/widget"
 	"github.com/pquerna/otp/totp"
 
+	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/dto"
 )
 
-func DrawCode(w fyne.Window, header *widget.Box) {
+func DrawCode(bima *bima.Bima) {
+	w := bima.UI.Window
+	header := bima.UI.Header
+
 	tokens, err := dto.LoadTokens()
 
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
 	if err == nil {
 		for _, token := range tokens {
-			otpCode, _ := totp.GenerateCode(token.DecryptToken(), time.Now())
+			otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
 			log.Println("Render for", token.Name)
 
 			lbl := canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0})

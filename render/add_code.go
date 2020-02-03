@@ -1,13 +1,15 @@
 package render
 
 import (
-	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 
+	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/dto"
 )
 
-func DrawNewCode(canvas fyne.Canvas) *widget.Button {
+func DrawNewCode(bima *bima.Bima) *widget.Button {
+	canvas := bima.UI.Window.Canvas()
+
 	var popup *widget.PopUp
 
 	nameEntry := &widget.Entry{
@@ -24,7 +26,7 @@ func DrawNewCode(canvas fyne.Canvas) *widget.Button {
 			name := nameEntry.Text
 			code := codeEntry.Text
 
-			if dto.AddSecret(name, code) == nil {
+			if dto.AddSecret(name, code, bima.Registry.MasterPassword) == nil {
 				if popup != nil {
 					popup.Hide()
 					popup = nil

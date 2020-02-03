@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
@@ -18,15 +17,9 @@ type Token struct {
 	Version int
 }
 
-func (t *Token) DecryptToken() string {
-	return string(shield.Decrypt(t.Token, "godfather"))
+func (t *Token) DecryptToken(masterPassword string) string {
+	return string(shield.Decrypt(t.Token, masterPassword))
 
-}
-
-var dbConn *sql.DB
-
-func SetDB(db *sql.DB) {
-	dbConn = db
 }
 
 func LoadTokens() ([]*Token, error) {
@@ -57,7 +50,7 @@ func LoadTokens() ([]*Token, error) {
 	return tokens, nil
 }
 
-func AddSecret(name, token string) error {
+func AddSecret(name, token, masterPassword string) error {
 	tx, err := dbConn.Begin()
 
 	if err != nil {
@@ -75,7 +68,7 @@ func AddSecret(name, token string) error {
 	//		return fmt.Errorf("Error when generating uuid %+w", err)
 	//	}
 
-	encryptedToken := shield.Encrypt([]byte(token), "godfather")
+	encryptedToken := shield.Encrypt([]byte(token), masterPassword)
 
 	_, err = stmt.Exec(u.String(), name, string(encryptedToken))
 	if err != nil {
