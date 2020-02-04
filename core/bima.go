@@ -30,6 +30,6 @@ func New(w fyne.Window, db *sql.DB) *Bima {
 			Window: w,
 		},
 		DB:   db,
-		Sync: sync.New(),
+		Sync: sync.New(registry.AppID),
 	}
 }

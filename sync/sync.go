@@ -16,6 +16,7 @@ import (
 type Sync struct {
 	Client *http.Client
 	Done   chan bool
+	AppID  string
 }
 
 type SyncResponse struct {
@@ -24,12 +25,13 @@ type SyncResponse struct {
 	Update []*dto.Token
 }
 
-func New() *Sync {
+func New(appID string) *Sync {
 	return &Sync{
 		Client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		Done: make(chan bool),
+		Done:  make(chan bool),
+		AppID: appID,
 	}
 }
 
@@ -71,6 +73,7 @@ func (s *Sync) Do() {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	req.Header.Set("User-Agent", "bima")
+	req.Header.Set("AppID", s.AppID)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := s.Client.Do(req)
