@@ -1,6 +1,8 @@
 package bima
 
 import (
+	"database/sql"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 )
@@ -13,9 +15,10 @@ type UI struct {
 type Bima struct {
 	Registry *Registry
 	UI       *UI
+	DB       *sql.DB
 }
 
-func New(w fyne.Window) *Bima {
+func New(w fyne.Window, db *sql.DB) *Bima {
 	registry := NewRegistry()
 
 	return &Bima{
@@ -23,5 +26,6 @@ func New(w fyne.Window) *Bima {
 		UI: &UI{
 			Window: w,
 		},
+		DB: db,
 	}
 }

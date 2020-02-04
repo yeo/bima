@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -14,6 +15,7 @@ type Token struct {
 	ID      string
 	Name    string
 	Token   []byte
+	URL     string
 	Version int
 }
 
@@ -23,7 +25,7 @@ func (t *Token) DecryptToken(masterPassword string) string {
 }
 
 func LoadTokens() ([]*Token, error) {
-	rows, err := dbConn.Query("select id, name, token from secret")
+	rows, err := dbConn.Query("select id, name, token, version, url  from secret")
 	if err != nil {
 		fmt.Println("Query error", err)
 		return nil, fmt.Errorf("%w", err)
@@ -32,14 +34,15 @@ func LoadTokens() ([]*Token, error) {
 	defer rows.Close()
 	tokens := make([]*Token, 0)
 	for rows.Next() {
-		var id, name string
+		var id, name, url string
 		var token []byte
-		err = rows.Scan(&id, &name, &token)
+		var version int
+		err = rows.Scan(&id, &name, &token, &url, &version)
 
 		if err != nil {
 			fmt.Println("Error fetching", err)
 		}
-		tokens = append(tokens, &Token{id, name, token, 1})
+		tokens = append(tokens, &Token{ID: id, Name: name, Token: token, URL: url, Version: version})
 	}
 
 	err = rows.Err()
@@ -50,13 +53,17 @@ func LoadTokens() ([]*Token, error) {
 	return tokens, nil
 }
 
-func AddSecret(name, token, masterPassword string) error {
+func AddSecret(name, url, token, masterPassword string) error {
+	if name == "" || url == "" || token == "" {
+		return errors.New("Invalid input")
+	}
+
 	tx, err := dbConn.Begin()
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmt, err := tx.Prepare("INSERT INTO secret(id, name, token) values(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO secret(id, name, url, token) values(?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +77,7 @@ func AddSecret(name, token, masterPassword string) error {
 
 	encryptedToken := shield.Encrypt([]byte(token), masterPassword)
 
-	_, err = stmt.Exec(u.String(), name, string(encryptedToken))
+	_, err = stmt.Exec(u.String(), name, url, string(encryptedToken))
 	if err != nil {
 		return fmt.Errorf("Error when executing statement %+w", err)
 	}

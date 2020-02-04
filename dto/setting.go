@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"database/sql"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -28,11 +29,18 @@ func GetConfig(configName string, configScope string) (*Setting, error) {
 		return nil, fmt.Errorf("Cannot query data: %+w", err)
 	}
 
-	return &Setting{
-		Name:  name,
-		Value: value,
-		Scope: configScope,
-	}, nil
+	switch err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		return &Setting{
+			Name:  name,
+			Value: value,
+			Scope: configScope,
+		}, nil
+	default:
+		return nil, fmt.Errorf("Error when querying database %+w", err)
+	}
 }
 
 func UpdateConfig(configName, configValue, configScope string) error {

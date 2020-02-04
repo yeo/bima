@@ -25,10 +25,14 @@ func NewRegistry() *Registry {
 	r := Registry{}
 
 	// TODO: Load
-	u := uuid.NewV4()
-	fmt.Printf("uuid: %s\n", u.String())
-	dto.UpdateConfig(CfgAppID, u.String(), ScopeCore)
-	r.AppID = u.String()
+	if config, err := dto.GetConfig(CfgAppID, ScopeCore); err == nil && config != nil {
+		r.AppID = config.Value
+	} else {
+		u := uuid.NewV4()
+		fmt.Printf("Generated appID: %s\n", u.String())
+		dto.UpdateConfig(CfgAppID, u.String(), ScopeCore)
+		r.AppID = u.String()
+	}
 
 	return &r
 }

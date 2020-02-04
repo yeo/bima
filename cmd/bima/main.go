@@ -29,7 +29,7 @@ func main() {
 	}
 	dto.SetDB(dbCon)
 
-	bima := bima.New(w)
+	bima := bima.New(w, dbCon)
 
 	searchBox := &widget.Entry{
 		PlaceHolder: "Search",

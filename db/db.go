@@ -27,18 +27,12 @@ func Setup() (*sql.DB, error) {
 	}
 
 	dbDir := user.HomeDir + "/.bima"
-	log.Println("Load db path", dbDir)
-
 	os.MkdirAll(dbDir, os.ModePerm)
 
 	dbPath := dbDir + "/bima.db"
+	log.Println("Load db file", dbPath)
 
-	log.Println("Load db path", dbPath)
-
-	needSetup := false
-	if !fileExists(dbPath) {
-		needSetup = true
-	}
+	needSetup := !fileExists(dbPath)
 
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
@@ -46,16 +40,13 @@ func Setup() (*sql.DB, error) {
 	}
 
 	if needSetup {
-		sqlStmt := `
-	CREATE TABLE migration (version string);
-	CREATE TABLE config (name text not null primary key, value text, scope text);
-	CREATE TABLE secret (id text not null primary key, name text, token blob, version integer DEFAULT 1);
-	`
-		_, err := db.Exec(sqlStmt)
+		err := setupMigration(db)
 		if err != nil {
-			log.Printf("%q: %s\n", err, sqlStmt)
+			panic("Cannot setup db")
 		}
 	}
+
+	runMigration(db)
 
 	return db, nil
 }

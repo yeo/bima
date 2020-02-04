@@ -13,20 +13,24 @@ func DrawNewCode(bima *bima.Bima) *widget.Button {
 	var popup *widget.PopUp
 
 	nameEntry := &widget.Entry{
-		PlaceHolder: "Name",
+		PlaceHolder: "Name, eg: awesome_username",
+	}
+	urlEntry := &widget.Entry{
+		PlaceHolder: "URL, eg: github.com",
 	}
 	codeEntry := &widget.Entry{
 		PlaceHolder: "OTP Secret",
 	}
 
-	content := widget.NewHBox(
+	content := widget.NewVBox(
 		nameEntry,
+		urlEntry,
 		codeEntry,
 		widget.NewButton("Save", func() {
 			name := nameEntry.Text
 			code := codeEntry.Text
 
-			if dto.AddSecret(name, code, bima.Registry.MasterPassword) == nil {
+			if dto.AddSecret(name, urlEntry.Text, code, bima.Registry.MasterPassword) == nil {
 				if popup != nil {
 					popup.Hide()
 					popup = nil
