@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	//"image/color"
 	"log"
@@ -51,9 +50,12 @@ func main() {
 		loadMainUI(bima, container)
 	}
 
+	go bima.Sync.Watch()
+
 	w.Resize(fyne.NewSize(350, 600))
 	w.ShowAndRun()
-	cleanup(dbCon)
+
+	cleanup(bima)
 }
 
 func loadMainUI(bima *bima.Bima, content *fyne.Container) {
@@ -76,8 +78,9 @@ func loadMainUI(bima *bima.Bima, content *fyne.Container) {
 	render.DrawCode(bima)
 }
 
-func cleanup(dbCon *sql.DB) {
+func cleanup(bima *bima.Bima) {
 	fmt.Println("TODO: Cleanup")
 
-	dbCon.Close()
+	bima.DB.Close()
+	bima.Sync.Done <- true
 }

@@ -5,6 +5,8 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
+
+	"github.com/yeo/bima/sync"
 )
 
 type UI struct {
@@ -16,6 +18,7 @@ type Bima struct {
 	Registry *Registry
 	UI       *UI
 	DB       *sql.DB
+	Sync     *sync.Sync
 }
 
 func New(w fyne.Window, db *sql.DB) *Bima {
@@ -26,6 +29,7 @@ func New(w fyne.Window, db *sql.DB) *Bima {
 		UI: &UI{
 			Window: w,
 		},
-		DB: db,
+		DB:   db,
+		Sync: sync.New(),
 	}
 }

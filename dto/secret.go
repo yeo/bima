@@ -12,11 +12,11 @@ import (
 )
 
 type Token struct {
-	ID      string
-	Name    string
-	Token   []byte
-	URL     string
-	Version int
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Token   []byte `json:"token"`
+	URL     string `json:"url"`
+	Version int    `json:"version"`
 }
 
 func (t *Token) DecryptToken(masterPassword string) string {
@@ -25,7 +25,7 @@ func (t *Token) DecryptToken(masterPassword string) string {
 }
 
 func LoadTokens() ([]*Token, error) {
-	rows, err := dbConn.Query("select id, name, token, version, url  from secret")
+	rows, err := dbConn.Query("select id, name, token, url, version   from secret")
 	if err != nil {
 		fmt.Println("Query error", err)
 		return nil, fmt.Errorf("%w", err)
@@ -63,7 +63,7 @@ func AddSecret(name, url, token, masterPassword string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmt, err := tx.Prepare("INSERT INTO secret(id, name, url, token) values(?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO secret(id, name, url, token) values(?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
