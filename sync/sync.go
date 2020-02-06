@@ -8,30 +8,42 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/yeo/bima/dto"
 )
 
 type Sync struct {
-	Client *http.Client
-	Done   chan bool
-	AppID  string
+	Client  *http.Client
+	Done    chan bool
+	AppID   string
+	SyncURL string
 }
 
 type SyncResponse struct {
-	Add    []*dto.Token
-	Delete []string
-	Update []*dto.Token
+	Current []*dto.Token `json:"current"`
+	Removed []string     `json:"removed"`
+}
+
+type SyncRequest struct {
+	Current []*dto.Token `json:"current"`
+	Removed []string     `json:"removed"`
 }
 
 func New(appID string) *Sync {
+	syncURL := os.Getenv("SYNC_URL")
+	if syncURL == "" {
+		syncURL = "http://localhost:4000/api/sync"
+	}
+
 	return &Sync{
 		Client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		Done:  make(chan bool),
-		AppID: appID,
+		Done:    make(chan bool),
+		AppID:   appID,
+		SyncURL: syncURL,
 	}
 }
 
@@ -63,15 +75,25 @@ func (s *Sync) Do() {
 		return
 	}
 
-	payload, err := json.Marshal(tokens)
+	removeTokenIDs := make([]string, 0)
+	if removedTokens, err := dto.LoadDeleteTokens(); err == nil {
+		for _, t := range removedTokens {
+			removeTokenIDs = append(removeTokenIDs, t.ID)
+		}
+	}
+
+	syncRequest := SyncRequest{
+		Current: tokens,
+		Removed: removeTokenIDs,
+	}
+
+	payload, err := json.Marshal(syncRequest)
 	if err != nil {
 		log.Println("Cannot marshal", tokens)
 		return
 	}
 
-	url := "https://a19e6def.ngrok.io/sync"
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", syncURL, bytes.NewBuffer(payload))
 	req.Header.Set("User-Agent", "bima")
 	req.Header.Set("AppID", s.AppID)
 	req.Header.Set("Content-Type", "application/json")
@@ -90,8 +112,14 @@ func (s *Sync) Do() {
 	var diff SyncResponse
 	err = json.Unmarshal(body, &diff)
 
-	log.Println(diff)
-	if diff.Add != nil {
-		log.Println("We will add", diff.Add)
+	if resp.StatusCode == 200 {
+		// Actually removed deleted token since the delete request are synced
+		//dto.CommitDeleteToken()
+	}
+
+	if diff.Current != nil {
+		for _, t := range diff.Current {
+			log.Println("token", t)
+		}
 	}
 }
