@@ -1,13 +1,12 @@
 package render
 
 import (
-	"fyne.io/fyne"
 	"fyne.io/fyne/widget"
 
 	"github.com/yeo/bima/core"
 )
 
-func DrawMasterPassword(bima *bima.Bima, container *fyne.Container, done func(*bima.Bima, *fyne.Container)) {
+func DrawMasterPassword(bima *bima.Bima, done func(*bima.Bima)) {
 	passwordEntry := &widget.Entry{
 		PlaceHolder: "Enter Master Password",
 	}
@@ -15,7 +14,7 @@ func DrawMasterPassword(bima *bima.Bima, container *fyne.Container, done func(*b
 		passwordEntry,
 		widget.NewButton("Save", func() {
 			bima.Registry.SaveMasterPassword(passwordEntry.Text)
-			done(bima, container)
+			done(bima)
 		}),
 	)
 

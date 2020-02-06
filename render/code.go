@@ -21,7 +21,7 @@ func DrawCode(bima *bima.Bima) {
 
 	tokens, err := dto.LoadTokens()
 
-	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
+	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(4))
 	if err == nil {
 		for _, token := range tokens {
 			otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
@@ -46,6 +46,9 @@ func DrawCode(bima *bima.Bima) {
 			})
 
 			codeContainer.AddObject(btn)
+
+			editButton := DrawEditCode(bima, token)
+			codeContainer.AddObject(editButton)
 		}
 	}
 

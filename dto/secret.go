@@ -12,11 +12,12 @@ import (
 )
 
 type Token struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Token   []byte `json:"token"`
-	URL     string `json:"url"`
-	Version int    `json:"version"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	RawToken string // Use when user input the plain text token before we save and encrypt it into Token field
+	Token    []byte `json:"token"`
+	URL      string `json:"url"`
+	Version  int    `json:"version"`
 }
 
 func (t *Token) DecryptToken(masterPassword string) string {
@@ -24,8 +25,8 @@ func (t *Token) DecryptToken(masterPassword string) string {
 
 }
 
-func LoadTokens() ([]*Token, error) {
-	rows, err := dbConn.Query("select id, name, token, url, version   from secret")
+func queryTokens(query string) ([]*Token, error) {
+	rows, err := dbConn.Query(query)
 	if err != nil {
 		fmt.Println("Query error", err)
 		return nil, fmt.Errorf("%w", err)
@@ -53,8 +54,24 @@ func LoadTokens() ([]*Token, error) {
 	return tokens, nil
 }
 
-func AddSecret(name, url, token, masterPassword string) error {
-	if name == "" || url == "" || token == "" {
+func LoadDeleteTokens() ([]*Token, error) {
+	return queryTokens("select id, name, token, url, version from secret where deleted_at is NOT NULL")
+}
+
+func LoadTokens() ([]*Token, error) {
+	return queryTokens("select id, name, token, url, version from secret where deleted_at is NULL")
+}
+
+func CommitDeleteToken(id string) error {
+	return nil
+}
+
+func AddSecret(token *Token, masterPassword string) error {
+	name := token.Name
+	url := token.URL
+	rawToken := token.RawToken
+
+	if name == "" || url == "" || rawToken == "" {
 		return errors.New("Invalid input")
 	}
 
@@ -75,7 +92,7 @@ func AddSecret(name, url, token, masterPassword string) error {
 	//		return fmt.Errorf("Error when generating uuid %+w", err)
 	//	}
 
-	encryptedToken := shield.Encrypt([]byte(token), masterPassword)
+	encryptedToken := shield.Encrypt([]byte(rawToken), masterPassword)
 
 	_, err = stmt.Exec(u.String(), name, url, string(encryptedToken))
 	if err != nil {

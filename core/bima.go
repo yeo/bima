@@ -10,8 +10,9 @@ import (
 )
 
 type UI struct {
-	Window fyne.Window
-	Header *widget.Box
+	Window        fyne.Window
+	Header        *widget.Box
+	MainContainer *fyne.Container
 }
 
 type Bima struct {
