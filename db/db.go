@@ -46,7 +46,7 @@ func Setup() (*sql.DB, error) {
 		}
 	}
 
-	runMigration(db)
+	runMigrations(db)
 
 	return db, nil
 }
