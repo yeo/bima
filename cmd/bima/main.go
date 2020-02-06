@@ -36,9 +36,11 @@ func main() {
 	}
 
 	addButton := render.DrawNewCode(bima)
-	settingButton := render.DrawSetting(bima, loadMainUI)
+	addButton.Resize(fyne.NewSize(50, 20))
+	settingButton := render.DrawSetting(bima)
 
 	header := widget.NewHBox(searchBox, addButton, settingButton)
+	header.Resize(fyne.NewSize(350, 50))
 	bima.UI.Header = header
 
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
@@ -67,7 +69,6 @@ func loadMainUI(bima *bima.Bima) {
 		remainder := secs % 30
 		time.Sleep(time.Duration(30-remainder) * time.Second)
 		log.Println("Sleep to rounded time", remainder)
-		render.DrawCode(bima)
 		ticker := time.NewTicker(30 * time.Second)
 		for {
 			select {

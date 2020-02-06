@@ -18,7 +18,7 @@ type Sync struct {
 	Client  *http.Client
 	Done    chan bool
 	AppID   string
-	SyncURL string
+	syncURL string
 }
 
 type SyncResponse struct {
@@ -43,7 +43,7 @@ func New(appID string) *Sync {
 		},
 		Done:    make(chan bool),
 		AppID:   appID,
-		SyncURL: syncURL,
+		syncURL: syncURL,
 	}
 }
 
@@ -93,7 +93,7 @@ func (s *Sync) Do() {
 		return
 	}
 
-	req, err := http.NewRequest("POST", syncURL, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", s.syncURL, bytes.NewBuffer(payload))
 	req.Header.Set("User-Agent", "bima")
 	req.Header.Set("AppID", s.AppID)
 	req.Header.Set("Content-Type", "application/json")
