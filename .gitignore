@@ -16,3 +16,7 @@
 assets
 .DS_Store
 *.app
+
+# build artfact
+cmd/bima/bima
+
