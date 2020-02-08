@@ -54,12 +54,13 @@ func DrawNewCode(bima *bima.Bima) *widget.Button {
 				popup.Hide()
 				popup = nil
 			}
+			DrawCode(bima)
 		} else {
 			// TODO: Error handler
 		}
 	})
 	addButton := widget.NewButton("Add", func() {
-		popup = widget.NewPopUp(content, canvas)
+		popup = widget.NewModalPopUp(content, canvas)
 	})
 
 	return addButton
@@ -70,10 +71,16 @@ func DrawEditCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 	canvas := bima.UI.Window.Canvas()
 
 	content := DrawFormCode(bima, token, func(token *dto.Token) {
-		popup.Hide()
+		if err := dto.UpdateSecret(token); err == nil {
+			if popup != nil {
+				popup.Hide()
+			}
+
+		}
+		DrawCode(bima)
 	})
 
 	return widget.NewButton("Edit", func() {
-		popup = widget.NewPopUp(content, canvas)
+		popup = widget.NewModalPopUp(content, canvas)
 	})
 }

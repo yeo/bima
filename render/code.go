@@ -20,7 +20,7 @@ func DrawCode(bima *bima.Bima) {
 	header := bima.UI.Header
 
 	tokens, err := dto.LoadTokens()
-
+	log.Println("Load tokenes", err)
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(4))
 	if err == nil {
 		for _, token := range tokens {

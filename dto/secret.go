@@ -66,6 +66,14 @@ func CommitDeleteToken(id string) error {
 	return nil
 }
 
+func UpdateSecret(token *Token) error {
+	log.Println(token)
+	r, err := dbConn.Exec("UPDATE secret SET name = ?, url = ? WHERE id=?", token.Name, token.URL, token.ID)
+
+	log.Println("Update result", r, err)
+	return err
+}
+
 func AddSecret(token *Token, masterPassword string) error {
 	name := token.Name
 	url := token.URL
@@ -86,7 +94,7 @@ func AddSecret(token *Token, masterPassword string) error {
 	}
 	defer stmt.Close()
 
-	u := uuid.NewV4()
+	u, _ := uuid.NewV4()
 	//	if err != nil {
 	//		fmt.Printf("Something went wrong: %s", err)
 	//		return fmt.Errorf("Error when generating uuid %+w", err)

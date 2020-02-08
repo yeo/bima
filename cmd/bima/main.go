@@ -20,7 +20,7 @@ import (
 
 func main() {
 	a := app.New()
-	w := a.NewWindow("primary")
+	w := a.NewWindow("Bima")
 
 	dbCon, err := db.Setup()
 	if err != nil {
