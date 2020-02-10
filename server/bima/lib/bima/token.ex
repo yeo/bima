@@ -10,7 +10,7 @@ defmodule Bima.Token do
     field :version, :integer
 
     field :app_id, :string
-    field :deleted_at, :time
+    field :deleted_at, :utc_datetime
 
     timestamps()
   end

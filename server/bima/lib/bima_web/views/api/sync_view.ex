@@ -1,9 +1,10 @@
 defmodule BimaWeb.Api.SyncView do
   use BimaWeb, :view
 
-  def render("sync.json", %{tokens: tokens}) do
+  def render("sync.json", %{tokens: tokens, removed_tokens: removed_tokens}) do
     %{
-      data: Enum.map(tokens, &token_json/1)
+      current: Enum.map(tokens, &token_json/1),
+      removed: removed_tokens,
     }
   end
 

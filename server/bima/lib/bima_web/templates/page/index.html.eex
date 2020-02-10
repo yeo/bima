@@ -1,6 +1,6 @@
 <section class="phx-hero">
-  <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1>
-  <p>A productive web framework that<br/>does not compromise speed or maintainability.</p>
+  <h1>Secure but still convenience 2FA app for Mac</h1>
+  <p>Finally a native 2FA desktop</p>
 </section>
 
 <section class="row">
