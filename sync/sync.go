@@ -116,7 +116,7 @@ func (s *Sync) Do() {
 		if diff.Current != nil {
 			for _, t := range diff.Current {
 				log.Println("token", t)
-				dto.UpdateSecret(t)
+				dto.InsertOrReplaceSecret(t)
 			}
 		}
 

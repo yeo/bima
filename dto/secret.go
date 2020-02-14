@@ -88,6 +88,14 @@ func UpdateSecret(token *Token) error {
 	return err
 }
 
+func InsertOrReplaceSecret(token *Token) error {
+	log.Println(token)
+	r, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
+
+	log.Println("Insert or Replace result", r, err)
+	return err
+}
+
 func AddSecret(token *Token, masterPassword string) error {
 	name := token.Name
 	url := token.URL
