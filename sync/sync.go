@@ -23,18 +23,17 @@ type Sync struct {
 
 type SyncResponse struct {
 	Current []*dto.Token `json:"current"`
-	Removed []string     `json:"removed"`
+	Removed []*dto.Token `json:"removed"`
 }
 
 type SyncRequest struct {
 	Current []*dto.Token `json:"current"`
-	Removed []string     `json:"removed"`
+	Removed []*dto.Token `json:"removed"`
 }
 
-func New(appID string) *Sync {
-	syncURL := os.Getenv("SYNC_URL")
-	if syncURL == "" {
-		syncURL = "http://localhost:4000/api/sync"
+func New(appID string, syncURL string) *Sync {
+	if url := os.Getenv("SYNC_URL"); url != "" {
+		syncURL = url
 	}
 
 	return &Sync{
@@ -49,7 +48,7 @@ func New(appID string) *Sync {
 
 // Watch setup a timer to routily send a Sync request to serer
 func (s *Sync) Watch() {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(15 * time.Second)
 
 	for {
 		select {
@@ -75,16 +74,17 @@ func (s *Sync) Do() {
 		return
 	}
 
-	removeTokenIDs := make([]string, 0)
+	removedTokens := make([]*dto.Token, 0)
 	if removedTokens, err := dto.LoadDeleteTokens(); err == nil {
 		for _, t := range removedTokens {
-			removeTokenIDs = append(removeTokenIDs, t.ID)
+			// When sending delete request, we only need id and version to compare on server side
+			removedTokens = append(removedTokens, &dto.Token{ID: t.ID, Version: t.Version})
 		}
 	}
 
 	syncRequest := SyncRequest{
 		Current: tokens,
-		Removed: removeTokenIDs,
+		Removed: removedTokens,
 	}
 
 	payload, err := json.Marshal(syncRequest)
@@ -113,13 +113,17 @@ func (s *Sync) Do() {
 	err = json.Unmarshal(body, &diff)
 
 	if resp.StatusCode == 200 {
-		// Actually removed deleted token since the delete request are synced
-		//dto.CommitDeleteToken()
-	}
+		if diff.Current != nil {
+			for _, t := range diff.Current {
+				log.Println("token", t)
+				dto.UpdateSecret(t)
+			}
+		}
 
-	if diff.Current != nil {
-		for _, t := range diff.Current {
-			log.Println("token", t)
+		if diff.Removed != nil {
+			for _, t := range diff.Removed {
+				dto.CommitDeleteSecret(t.ID)
+			}
 		}
 	}
 }

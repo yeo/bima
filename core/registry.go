@@ -26,8 +26,9 @@ type Registry struct {
 func NewRegistry() *Registry {
 	r := Registry{}
 
-	// TODO: Load
-	if config, err := dto.GetConfig(CfgAppID, ScopeCore); err == nil && config != nil {
+	config, err := dto.GetConfig(CfgAppID, ScopeCore)
+	if err == nil && config != nil {
+		fmt.Println("Found existed appid", config)
 		r.AppID = config.Value
 	} else {
 		u, _ := uuid.NewV4()

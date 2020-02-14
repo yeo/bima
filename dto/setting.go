@@ -22,8 +22,8 @@ func GetConfig(configName string, configScope string) (*Setting, error) {
 
 	defer stmt.Close()
 
-	var name, value string
-	err = stmt.QueryRow(configName, configScope).Scan(&name, &value)
+	var name, value, scope string
+	err = stmt.QueryRow(configName, configScope).Scan(&name, &value, &scope)
 
 	if err != nil {
 		return nil, fmt.Errorf("Cannot query data: %+w", err)
@@ -36,7 +36,7 @@ func GetConfig(configName string, configScope string) (*Setting, error) {
 		return &Setting{
 			Name:  name,
 			Value: value,
-			Scope: configScope,
+			Scope: scope,
 		}, nil
 	default:
 		return nil, fmt.Errorf("Error when querying database %+w", err)

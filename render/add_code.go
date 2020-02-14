@@ -1,6 +1,8 @@
 package render
 
 import (
+	"time"
+
 	"fyne.io/fyne/widget"
 
 	"github.com/yeo/bima/core"
@@ -42,6 +44,13 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 		}),
 	)
 
+	if token.ID != "" {
+		content.Append(widget.NewButton("Delete", func() {
+			token.DeletedAt = time.Now().Unix()
+			done(token)
+		}))
+	}
+
 	return content
 }
 
@@ -71,12 +80,23 @@ func DrawEditCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 	canvas := bima.UI.Window.Canvas()
 
 	content := DrawFormCode(bima, token, func(token *dto.Token) {
-		if err := dto.UpdateSecret(token); err == nil {
-			if popup != nil {
-				popup.Hide()
-			}
+		if token.DeletedAt < 1 {
+			if err := dto.UpdateSecret(token); err == nil {
+				if popup != nil {
+					popup.Hide()
+				}
 
+			}
 		}
+
+		if token.DeletedAt > 1 {
+			if err := dto.DeleteSecret(token); err == nil {
+				if popup != nil {
+					popup.Hide()
+				}
+			}
+		}
+
 		DrawCode(bima)
 	})
 

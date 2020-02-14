@@ -12,12 +12,13 @@ import (
 )
 
 type Token struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	RawToken string // Use when user input the plain text token before we save and encrypt it into Token field
-	Token    []byte `json:"token"`
-	URL      string `json:"url"`
-	Version  int    `json:"version"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	RawToken  string // Use when user input the plain text token before we save and encrypt it into Token field
+	Token     []byte `json:"token"`
+	URL       string `json:"url"`
+	Version   int    `json:"version"`
+	DeletedAt int64  `json:"deleted_at"`
 }
 
 func (t *Token) DecryptToken(masterPassword string) string {
@@ -62,13 +63,26 @@ func LoadTokens() ([]*Token, error) {
 	return queryTokens("select id, name, token, url, version from secret where deleted_at is NULL")
 }
 
-func CommitDeleteToken(id string) error {
-	return nil
+func CommitDeleteSecret(id string) error {
+	log.Println("Commit to delete", id)
+
+	r, err := dbConn.Exec("DELETE FROM secret WHERE id=?", id)
+
+	log.Println("Delete affect", r, "rows", "error", err)
+	return err
+}
+
+func DeleteSecret(token *Token) error {
+	log.Println(token)
+	r, err := dbConn.Exec("UPDATE secret SET deleted_at = datetime('now'), version = version + 1 WHERE id=?", token.ID)
+
+	log.Println("Mark for deletion result", r, err)
+	return err
 }
 
 func UpdateSecret(token *Token) error {
 	log.Println(token)
-	r, err := dbConn.Exec("UPDATE secret SET name = ?, url = ? WHERE id=?", token.Name, token.URL, token.ID)
+	r, err := dbConn.Exec("UPDATE secret SET name = ?, url = ?, version = version + 1 WHERE id=?", token.Name, token.URL, token.ID)
 
 	log.Println("Update result", r, err)
 	return err
@@ -95,10 +109,10 @@ func AddSecret(token *Token, masterPassword string) error {
 	defer stmt.Close()
 
 	u, _ := uuid.NewV4()
-	//	if err != nil {
-	//		fmt.Printf("Something went wrong: %s", err)
-	//		return fmt.Errorf("Error when generating uuid %+w", err)
-	//	}
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err)
+		return fmt.Errorf("Error when generating uuid %+w", err)
+	}
 
 	encryptedToken := shield.Encrypt([]byte(rawToken), masterPassword)
 
