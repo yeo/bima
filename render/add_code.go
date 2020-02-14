@@ -1,6 +1,7 @@
 package render
 
 import (
+	"log"
 	"time"
 
 	"fyne.io/fyne/widget"
@@ -80,12 +81,13 @@ func DrawEditCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 	canvas := bima.UI.Window.Canvas()
 
 	content := DrawFormCode(bima, token, func(token *dto.Token) {
+		log.Println("Delete at for token", token.DeletedAt)
+
 		if token.DeletedAt < 1 {
 			if err := dto.UpdateSecret(token); err == nil {
 				if popup != nil {
 					popup.Hide()
 				}
-
 			}
 		}
 

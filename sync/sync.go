@@ -74,18 +74,18 @@ func (s *Sync) Do() {
 		return
 	}
 
-	removedTokens := make([]*dto.Token, 0)
-	if removedTokens, err := dto.LoadDeleteTokens(); err == nil {
-		for _, t := range removedTokens {
-			// When sending delete request, we only need id and version to compare on server side
-			removedTokens = append(removedTokens, &dto.Token{ID: t.ID, Version: t.Version})
-		}
+	removedTokens, err := dto.LoadDeleteTokens()
+	if err != nil {
+		log.Println("Cannot fetch deleted token", err)
+
 	}
 
 	syncRequest := SyncRequest{
 		Current: tokens,
 		Removed: removedTokens,
 	}
+
+	log.Println("Remove token", removedTokens)
 
 	payload, err := json.Marshal(syncRequest)
 	if err != nil {
@@ -115,13 +115,14 @@ func (s *Sync) Do() {
 	if resp.StatusCode == 200 {
 		if diff.Current != nil {
 			for _, t := range diff.Current {
-				log.Println("token", t)
+				log.Println("Get current token", t)
 				dto.InsertOrReplaceSecret(t)
 			}
 		}
 
 		if diff.Removed != nil {
 			for _, t := range diff.Removed {
+				log.Println("Remove token", t)
 				dto.CommitDeleteSecret(t.ID)
 			}
 		}

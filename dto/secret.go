@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -27,6 +28,7 @@ func (t *Token) DecryptToken(masterPassword string) string {
 }
 
 func queryTokens(query string) ([]*Token, error) {
+	tokens := make([]*Token, 0)
 	rows, err := dbConn.Query(query)
 	if err != nil {
 		fmt.Println("Query error", err)
@@ -34,7 +36,6 @@ func queryTokens(query string) ([]*Token, error) {
 	}
 
 	defer rows.Close()
-	tokens := make([]*Token, 0)
 	for rows.Next() {
 		var id, name, url string
 		var token []byte
@@ -72,8 +73,44 @@ func CommitDeleteSecret(id string) error {
 	return err
 }
 
+func LoadSecretByID(id string) (*Token, error) {
+	stmt, err := dbConn.Prepare("select id, name, token, url, version, deleted_at from secret where id = ?")
+
+	if err != nil {
+		return nil, fmt.Errorf("Cannot prepare statement: %+w", err)
+	}
+
+	defer stmt.Close()
+
+	var name, url string
+	var token []byte
+	var version int
+	var deletedAt int64
+	err = stmt.QueryRow(id).Scan(&name, &token, &url, &version, &deletedAt)
+
+	if err != nil {
+		return nil, fmt.Errorf("Cannot query data: %+w", err)
+	}
+
+	switch err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		return &Token{
+			ID:        id,
+			Name:      name,
+			Token:     token,
+			URL:       url,
+			Version:   version,
+			DeletedAt: deletedAt,
+		}, nil
+	default:
+		return nil, fmt.Errorf("Error when querying database %+w", err)
+	}
+}
+
 func DeleteSecret(token *Token) error {
-	log.Println(token)
+	log.Println("Delete token", token)
 	r, err := dbConn.Exec("UPDATE secret SET deleted_at = datetime('now'), version = version + 1 WHERE id=?", token.ID)
 
 	log.Println("Mark for deletion result", r, err)
@@ -89,7 +126,7 @@ func UpdateSecret(token *Token) error {
 }
 
 func InsertOrReplaceSecret(token *Token) error {
-	log.Println(token)
+	log.Println("Insert or replace", token)
 	r, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
 
 	log.Println("Insert or Replace result", r, err)
