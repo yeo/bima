@@ -3,7 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -19,7 +20,7 @@ func setupMigration(db *sql.DB) error {
 	sqlStmt := "CREATE TABLE migration (version int, name string);"
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStmt)
+		log.Error().Str("query", sqlStmt).Err(err).Msg("fail to create migration table")
 	}
 	return err
 }
@@ -60,14 +61,15 @@ func runMigrations(db *sql.DB) error {
 
 	for i, sqlStmt := range sqls {
 		ran, err := checkMirationRan(db, i+1)
-		log.Println("Migrtion", i, "status is", ran, "return error", err)
 		if !ran && err == nil {
-			log.Println("Run migration", sqlStmt.Query)
+			log.Info().Str("query", sqlStmt.Query).Msg("migration run sucesfully")
 			_, err = db.Exec(sqlStmt.Query)
 			if err != nil {
 				return err
 			}
 			db.Exec(fmt.Sprintf("INSERT INTO migration (version, name) VALUES (%d, '%s')", i+1, sqlStmt.Name))
+		} else {
+			log.Error().Str("query", sqlStmt.Query).Err(err).Msg("migration run error")
 		}
 	}
 

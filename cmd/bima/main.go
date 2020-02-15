@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	//"image/color"
-	"log"
 	"time"
 
 	"fyne.io/fyne"
@@ -12,6 +10,9 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
 	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/db"
 	"github.com/yeo/bima/dto"
@@ -19,12 +20,14 @@ import (
 )
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
 	a := app.New()
 	w := a.NewWindow("Bima")
 
 	dbCon, err := db.Setup()
 	if err != nil {
-		log.Println("error", err)
+		log.Fatal().Err(err).Msg("Cannot setup db")
 	}
 	dto.SetDB(dbCon)
 
@@ -68,7 +71,6 @@ func loadMainUI(bima *bima.Bima) {
 		secs := time.Now().Unix()
 		remainder := secs % 30
 		time.Sleep(time.Duration(30-remainder) * time.Second)
-		log.Println("Sleep to rounded time", remainder)
 		ticker := time.NewTicker(30 * time.Second)
 		for {
 			select {
@@ -81,8 +83,6 @@ func loadMainUI(bima *bima.Bima) {
 }
 
 func cleanup(bima *bima.Bima) {
-	fmt.Println("TODO: Cleanup")
-
 	bima.DB.Close()
 	bima.Sync.Done <- true
 }

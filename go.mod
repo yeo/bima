@@ -7,6 +7,7 @@ require (
 	github.com/go-gl/glfw v0.0.0-20191125211704-12ad95a8df72 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/pquerna/otp v1.2.0
+	github.com/rs/zerolog v1.18.0
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/srwiley/rasterx v0.0.0-20200120212402-85cb7272f5e9 // indirect
 	golang.org/x/exp v0.0.0-20200207192155-f17229e696bd // indirect

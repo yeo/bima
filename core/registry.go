@@ -1,8 +1,7 @@
 package bima
 
 import (
-	"fmt"
-
+	"github.com/rs/zerolog/log"
 	"github.com/satori/go.uuid"
 
 	"github.com/yeo/bima/dto"
@@ -28,17 +27,17 @@ func NewRegistry() *Registry {
 
 	config, err := dto.GetConfig(CfgAppID, ScopeCore)
 	if err == nil && config != nil {
-		fmt.Println("Found existed appid", config)
+		log.Debug().Str("appid", config.Value).Msg("Found existed appid")
 		r.AppID = config.Value
 	} else {
 		u, _ := uuid.NewV4()
-		fmt.Printf("Generated appID: %s\n", u.String())
+		log.Debug().Str("appid", u.String()).Msg("Generated appid")
 		dto.UpdateConfig(CfgAppID, u.String(), ScopeCore)
 		r.AppID = u.String()
 	}
 
 	// default sync url
-	r.SyncURL = "http://localhost:4000/api/sync"
+	r.SyncURL = "http://bima.getopty.com/api/sync"
 	if syncURL, err := dto.GetConfig(CfgSyncURL, ScopeCore); err == nil && syncURL != nil {
 		r.SyncURL = syncURL.Value
 	}

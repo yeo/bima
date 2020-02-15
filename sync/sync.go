@@ -6,10 +6,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/yeo/bima/dto"
 )
@@ -70,13 +71,13 @@ func (s *Sync) Do() {
 	// - Add new
 	tokens, err := dto.LoadTokens()
 	if err != nil {
-		log.Println("Cannot fetch token")
+		log.Printf("Cannot fetch token")
 		return
 	}
 
 	removedTokens, err := dto.LoadDeleteTokens()
 	if err != nil {
-		log.Println("Cannot fetch deleted token", err)
+		log.Printf("Cannot fetch deleted token", err)
 
 	}
 
@@ -85,11 +86,11 @@ func (s *Sync) Do() {
 		Removed: removedTokens,
 	}
 
-	log.Println("Remove token", removedTokens)
+	log.Printf("Remove token", removedTokens)
 
 	payload, err := json.Marshal(syncRequest)
 	if err != nil {
-		log.Println("Cannot marshal", tokens)
+		log.Printf("Cannot marshal", tokens)
 		return
 	}
 
@@ -101,28 +102,28 @@ func (s *Sync) Do() {
 	resp, err := s.Client.Do(req)
 
 	if err != nil {
-		log.Println("Cannot post to backend. Retry later")
+		log.Printf("Cannot post to backend. Retry later")
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 
-	log.Println("Response", string(body))
+	log.Printf("Response", string(body))
 	var diff SyncResponse
 	err = json.Unmarshal(body, &diff)
 
 	if resp.StatusCode == 200 {
 		if diff.Current != nil {
 			for _, t := range diff.Current {
-				log.Println("Get current token", t)
+				log.Printf("Get current token", t)
 				dto.InsertOrReplaceSecret(t)
 			}
 		}
 
 		if diff.Removed != nil {
 			for _, t := range diff.Removed {
-				log.Println("Remove token", t)
+				log.Printf("Remove token", t)
 				dto.CommitDeleteSecret(t.ID)
 			}
 		}

@@ -3,9 +3,10 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"os/user"
+
+	"github.com/rs/zerolog/log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -30,19 +31,19 @@ func Setup() (*sql.DB, error) {
 	os.MkdirAll(dbDir, os.ModePerm)
 
 	dbPath := dbDir + "/bima.db"
-	log.Println("Load db file", dbPath)
+	log.Info().Str("dbpath", dbPath).Msg("Load db file")
 
 	needSetup := !fileExists(dbPath)
 
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("Cannot sqlite db file. Check file permission")
 	}
 
 	if needSetup {
 		err := setupMigration(db)
 		if err != nil {
-			panic("Cannot setup db")
+			log.Fatal().Err(err).Msg("Cannot migrate database")
 		}
 	}
 
