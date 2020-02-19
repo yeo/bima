@@ -9,6 +9,14 @@ import (
 	"github.com/yeo/bima/sync"
 )
 
+type AppState int
+
+const (
+	Init    AppState = 0 // Initialize the whole application
+	Pending AppState = 1 // Finish init, pending drawing ui
+	Ready   AppState = 2 // Everything is loaded, ready to draw ui
+)
+
 type UI struct {
 	Window        fyne.Window
 	Header        *widget.Box
@@ -20,6 +28,7 @@ type Bima struct {
 	UI       *UI
 	DB       *sql.DB
 	Sync     *sync.Sync
+	AppState AppState
 }
 
 func New(w fyne.Window, db *sql.DB) *Bima {
