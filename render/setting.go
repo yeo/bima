@@ -50,6 +50,7 @@ func DrawSetting(bima *bima.Bima) *widget.Button {
 		container.AddObject(backend)
 		container.AddObject(syncWidget)
 		container.AddObject(actionButtons)
+		container.AddObject(layout.NewSpacer())
 
 		bima.UI.Window.SetContent(container)
 		container.Refresh()

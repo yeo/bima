@@ -1,9 +1,6 @@
 package main
 
 import (
-	//"image/color"
-	"time"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 	//"fyne.io/fyne/canvas"
@@ -50,9 +47,9 @@ func main() {
 	bima.UI.MainContainer = fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, codeContainer)
 
 	if bima.Registry.MasterPassword == "" {
-		render.DrawMasterPassword(bima, loadMainUI)
+		render.DrawMasterPassword(bima, render.DrawMainUI)
 	} else {
-		loadMainUI(bima)
+		render.DrawMainUI(bima)
 	}
 
 	go bima.Sync.Watch()
@@ -61,25 +58,6 @@ func main() {
 	w.ShowAndRun()
 
 	cleanup(bima)
-}
-
-func loadMainUI(bima *bima.Bima) {
-	content := bima.UI.MainContainer
-	bima.UI.Window.SetContent(content)
-
-	go func() {
-		secs := time.Now().Unix()
-		remainder := secs % 30
-		time.Sleep(time.Duration(30-remainder) * time.Second)
-		ticker := time.NewTicker(30 * time.Second)
-		for {
-			select {
-			case <-ticker.C:
-				render.DrawCode(bima)
-			}
-		}
-	}()
-	render.DrawCode(bima)
 }
 
 func cleanup(bima *bima.Bima) {

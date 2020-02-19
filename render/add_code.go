@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
 	"github.com/yeo/bima/core"
@@ -30,6 +31,7 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 	}
 
 	content := widget.NewVBox(
+		layout.NewSpacer(),
 		nameEntry,
 		urlEntry,
 		codeEntry,
@@ -43,6 +45,7 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 
 			done(token)
 		}),
+		layout.NewSpacer(),
 	)
 
 	if token.ID != "" {
