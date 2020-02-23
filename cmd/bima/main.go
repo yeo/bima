@@ -36,15 +36,14 @@ func main() {
 	}
 
 	addButton := render.DrawNewCode(bima)
-	addButton.Resize(fyne.NewSize(50, 20))
 	settingButton := render.DrawSetting(bima)
 
 	header := widget.NewHBox(searchBox, addButton, settingButton)
-	header.Resize(fyne.NewSize(350, 50))
 	bima.UI.Header = header
 
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
-	bima.UI.MainContainer = fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, codeContainer)
+	bima.UI.MainContainer = fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+		header, codeContainer, layout.NewSpacer())
 
 	if bima.Registry.MasterPassword == "" {
 		render.DrawMasterPassword(bima, render.DrawMainUI)

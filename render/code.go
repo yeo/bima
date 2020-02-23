@@ -2,7 +2,6 @@ package render
 
 import (
 	"image/color"
-	"log"
 	"time"
 
 	"fyne.io/fyne"
@@ -20,22 +19,20 @@ func DrawCode(bima *bima.Bima) {
 	header := bima.UI.Header
 
 	tokens, err := dto.LoadTokens()
-	log.Println("Load tokenes", err)
-	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(4))
+	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
 	if err == nil {
 		for _, token := range tokens {
 			otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
-			log.Println("Render for", token.Name)
 
-			lbl := canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0})
-			codeContainer.AddObject(lbl)
+			codeContainer.AddObject(widget.NewVBox(
+				canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0}),
+				canvas.NewText(token.URL, color.RGBA{38, 41, 45, 0}),
+			))
 			t := canvas.NewText(otpCode, color.RGBA{10, 200, 200, 0})
-			codeContainer.AddObject(t)
-
 			var btn *widget.Button
 			btn = widget.NewButton("Copy", func() {
 				w.Clipboard().SetContent(otpCode)
-				btn.SetText("Copied √")
+				btn.SetText("Copied")
 				timer2 := time.NewTimer(time.Second * 10)
 				go func() {
 					<-timer2.C
@@ -45,10 +42,15 @@ func DrawCode(bima *bima.Bima) {
 				}()
 			})
 
-			codeContainer.AddObject(btn)
+			codeContainer.AddObject(widget.NewVBox(
+				t,
+				btn,
+			))
 
 			editButton := DrawEditCode(bima, token)
-			codeContainer.AddObject(editButton)
+			codeContainer.AddObject(widget.NewVBox(
+				editButton,
+			))
 		}
 	}
 

@@ -86,8 +86,6 @@ func (s *Sync) Do() {
 		Removed: removedTokens,
 	}
 
-	log.Printf("Remove token", removedTokens)
-
 	payload, err := json.Marshal(syncRequest)
 	if err != nil {
 		log.Printf("Cannot marshal", tokens)
@@ -109,21 +107,19 @@ func (s *Sync) Do() {
 
 	body, err := ioutil.ReadAll(resp.Body)
 
-	log.Printf("Response", string(body))
+	log.Debug().Str("body", string(body)).Msg("Sync Response")
 	var diff SyncResponse
 	err = json.Unmarshal(body, &diff)
 
 	if resp.StatusCode == 200 {
 		if diff.Current != nil {
 			for _, t := range diff.Current {
-				log.Printf("Get current token", t)
 				dto.InsertOrReplaceSecret(t)
 			}
 		}
 
 		if diff.Removed != nil {
 			for _, t := range diff.Removed {
-				log.Printf("Remove token", t)
 				dto.CommitDeleteSecret(t.ID)
 			}
 		}

@@ -126,6 +126,15 @@ func UpdateSecret(token *Token) error {
 }
 
 func InsertOrReplaceSecret(token *Token) error {
+	currentToken, err := LoadSecretByID(token.ID)
+	if err != nil {
+		return fmt.Errorf("Cannot fetch current secret %+w", err)
+	}
+
+	if token.Version == currentToken.Version {
+		log.Println("Version are same. Ignore udpate token", token.ID)
+	}
+
 	log.Println("Insert or replace", token)
 	r, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
 
