@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 	//"fyne.io/fyne/canvas"
@@ -19,6 +21,11 @@ import (
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if debugFlag := os.Getenv("DEBUG"); debugFlag == "1" {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
 	a := app.New()
 	w := a.NewWindow("Bima")
 
@@ -33,6 +40,9 @@ func main() {
 	searchBox := &widget.Entry{
 		PlaceHolder: "Search",
 		MultiLine:   false,
+		OnChanged: func(t string) {
+			bima.AppModel.FilterText = t
+		},
 	}
 
 	addButton := render.DrawNewCode(bima)
@@ -43,7 +53,7 @@ func main() {
 
 	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
 	bima.UI.MainContainer = fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-		header, codeContainer, layout.NewSpacer())
+		header, codeContainer)
 
 	if bima.Registry.MasterPassword == "" {
 		render.DrawMasterPassword(bima, render.DrawMainUI)
