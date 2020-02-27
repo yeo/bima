@@ -54,6 +54,8 @@ func DrawCode(bima *bima.Bima) {
 		}
 	}
 
-	bima.UI.MainContainer = fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, codeContainer)
+	s := widget.NewScrollContainer(codeContainer)
+	c := fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, s)
+	bima.UI.MainContainer = c
 	w.SetContent(bima.UI.MainContainer)
 }
