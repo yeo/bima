@@ -74,7 +74,7 @@ func CommitDeleteSecret(id string) error {
 }
 
 func LoadSecretByID(id string) (*Token, error) {
-	stmt, err := dbConn.Prepare("select id, name, token, url, version, deleted_at from secret where id = ?")
+	stmt, err := dbConn.Prepare("select name, token, url, version, deleted_at from secret where id = ?")
 
 	if err != nil {
 		return nil, fmt.Errorf("Cannot prepare statement: %+w", err)
@@ -85,25 +85,29 @@ func LoadSecretByID(id string) (*Token, error) {
 	var name, url string
 	var token []byte
 	var version int
-	var deletedAt int64
+	var deletedAt sql.NullInt64
 	err = stmt.QueryRow(id).Scan(&name, &token, &url, &version, &deletedAt)
-
-	if err != nil {
-		return nil, fmt.Errorf("Cannot query data: %+w", err)
-	}
 
 	switch err {
 	case sql.ErrNoRows:
 		return nil, nil
 	case nil:
-		return &Token{
-			ID:        id,
-			Name:      name,
-			Token:     token,
-			URL:       url,
-			Version:   version,
-			DeletedAt: deletedAt,
-		}, nil
+
+		t := &Token{
+			ID:      id,
+			Name:    name,
+			Token:   token,
+			URL:     url,
+			Version: version,
+		}
+
+		if deletedAtValue, err2 := deletedAt.Value(); err2 == nil {
+			if deletedAtValue != nil {
+				t.DeletedAt = deletedAtValue.(int64)
+			}
+		}
+
+		return t, nil
 	default:
 		return nil, fmt.Errorf("Error when querying database %+w", err)
 	}
@@ -128,18 +132,20 @@ func UpdateSecret(token *Token) error {
 func InsertOrReplaceSecret(token *Token) error {
 	currentToken, err := LoadSecretByID(token.ID)
 	if err != nil {
+		log.Println("Error when fetching current token for", token, err)
 		return fmt.Errorf("Cannot fetch current secret %+w", err)
 	}
 
-	if token.Version == currentToken.Version {
-		log.Println("Version are same. Ignore udpate token", token.ID)
+	if currentToken == nil || (token.Version > currentToken.Version) {
+		log.Println("Insert or replace", token)
+		r, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
+		log.Println("Insert or Replace result", r, err)
+		return err
 	}
 
-	log.Println("Insert or replace", token)
-	r, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
+	log.Println("Token", currentToken.ID, "is already newer. Current version=", currentToken.Version, "Request Version=", token.Version, token.ID)
 
-	log.Println("Insert or Replace result", r, err)
-	return err
+	return nil
 }
 
 func AddSecret(token *Token, masterPassword string) error {
