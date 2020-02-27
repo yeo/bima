@@ -53,7 +53,7 @@ func main() {
 
 	go bima.Sync.Watch()
 
-	w.Resize(fyne.NewSize(350, 600))
+	w.Resize(fyne.NewSize(300, 600))
 	w.ShowAndRun()
 
 	cleanup(bima)

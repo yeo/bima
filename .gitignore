@@ -19,4 +19,4 @@ assets
 
 # build artfact
 cmd/bima/bima
-
+cmd/bima/*.zip

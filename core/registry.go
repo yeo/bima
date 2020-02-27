@@ -18,6 +18,7 @@ type Registry struct {
 	// AppID is to identify who this is when syncing with our backend
 	// App on different platform shares this to sync data
 	AppID          string
+	DeviceToken    string
 	MasterPassword string
 	SyncURL        string
 }
