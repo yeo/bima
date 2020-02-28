@@ -5,7 +5,9 @@ go 1.13
 require (
 	fyne.io/fyne v1.2.2
 	github.com/go-gl/glfw v0.0.0-20191125211704-12ad95a8df72 // indirect
+	github.com/josephspurrier/goversioninfo v0.0.0-20190209210621-63e6d1acd3dd // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pquerna/otp v1.2.0
 	github.com/rs/zerolog v1.18.0
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
