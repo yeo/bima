@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
 	"github.com/satori/go.uuid"
 
 	"github.com/yeo/bima/shield"
@@ -65,11 +65,7 @@ func LoadTokens() ([]*Token, error) {
 }
 
 func CommitDeleteSecret(id string) error {
-	log.Println("Commit to delete", id)
-
-	r, err := dbConn.Exec("DELETE FROM secret WHERE id=?", id)
-
-	log.Println("Delete affect", r, "rows", "error", err)
+	_, err := dbConn.Exec("DELETE FROM secret WHERE id=?", id)
 	return err
 }
 
@@ -114,36 +110,28 @@ func LoadSecretByID(id string) (*Token, error) {
 }
 
 func DeleteSecret(token *Token) error {
-	log.Println("Delete token", token)
-	r, err := dbConn.Exec("UPDATE secret SET deleted_at = datetime('now'), version = version + 1 WHERE id=?", token.ID)
+	_, err := dbConn.Exec("UPDATE secret SET deleted_at = datetime('now'), version = version + 1 WHERE id=?", token.ID)
 
-	log.Println("Mark for deletion result", r, err)
 	return err
 }
 
 func UpdateSecret(token *Token) error {
-	log.Println(token)
-	r, err := dbConn.Exec("UPDATE secret SET name = ?, url = ?, version = version + 1 WHERE id=?", token.Name, token.URL, token.ID)
+	_, err := dbConn.Exec("UPDATE secret SET name = ?, url = ?, version = version + 1 WHERE id=?", token.Name, token.URL, token.ID)
 
-	log.Println("Update result", r, err)
 	return err
 }
 
 func InsertOrReplaceSecret(token *Token) error {
 	currentToken, err := LoadSecretByID(token.ID)
 	if err != nil {
-		log.Println("Error when fetching current token for", token, err)
+		log.Err(err).Str("token", token.ID).Msg("Error find token by id")
 		return fmt.Errorf("Cannot fetch current secret %+w", err)
 	}
 
 	if currentToken == nil || (token.Version > currentToken.Version) {
-		log.Println("Insert or replace", token)
-		r, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
-		log.Println("Insert or Replace result", r, err)
+		_, err := dbConn.Exec("INSERT OR REPLACE INTO secret(id, name, url, token, version) VALUES(?, ?, ?, ?, ?)", token.ID, token.Name, token.URL, token.Token, token.Version)
 		return err
 	}
-
-	log.Println("Token", currentToken.ID, "is already newer. Current version=", currentToken.Version, "Request Version=", token.Version, token.ID)
 
 	return nil
 }
@@ -160,17 +148,16 @@ func AddSecret(token *Token, masterPassword string) error {
 	tx, err := dbConn.Begin()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("Cannot create db transaction to add secret")
 	}
 	stmt, err := tx.Prepare("INSERT INTO secret(id, name, url, token) values(?, ?, ?, ?)")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err).Msg("Cannot prepare query")
 	}
 	defer stmt.Close()
 
 	u, _ := uuid.NewV4()
 	if err != nil {
-		fmt.Printf("Something went wrong: %s", err)
 		return fmt.Errorf("Error when generating uuid %+w", err)
 	}
 
