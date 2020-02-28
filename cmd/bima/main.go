@@ -48,19 +48,21 @@ func main() {
 	addButton := render.DrawNewCode(bima)
 	settingButton := render.DrawSetting(bima)
 
-	header := widget.NewHBox(searchBox, addButton, settingButton)
+	headerWidget := widget.NewHBox(searchBox, layout.NewSpacer(), addButton, settingButton)
+
+	header := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 50}), headerWidget)
 	bima.UI.Header = header
 
-	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
-	bima.UI.MainContainer = fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-		header, codeContainer)
+	// To avoid the annoying of password when debugging, we support set password via env.
+	if password := os.Getenv("BIMAPASS"); password != "" {
+		bima.Registry.MasterPassword = password
+	}
 
 	if bima.Registry.MasterPassword == "" {
 		render.DrawMasterPassword(bima, render.DrawMainUI)
 	} else {
 		render.DrawMainUI(bima)
 	}
-
 	go bima.Sync.Watch()
 
 	w.Resize(fyne.NewSize(300, 600))
