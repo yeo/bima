@@ -68,8 +68,6 @@ func runMigrations(db *sql.DB) error {
 				return err
 			}
 			db.Exec(fmt.Sprintf("INSERT INTO migration (version, name) VALUES (%d, '%s')", i+1, sqlStmt.Name))
-		} else {
-			log.Error().Str("query", sqlStmt.Query).Err(err).Msg("migration run error")
 		}
 	}
 
