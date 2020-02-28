@@ -22,7 +22,7 @@ func DrawCode(bima *bima.Bima) {
 	header := bima.UI.Header
 
 	tokens, err := dto.LoadTokens()
-	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(3))
+	codeContainer := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
 	if err == nil {
 		for _, token := range tokens {
 			otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
@@ -35,15 +35,12 @@ func DrawCode(bima *bima.Bima) {
 				}
 			}
 
-			codeContainer.AddObject(widget.NewVBox(
-				canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0}),
-				canvas.NewText(token.URL, color.RGBA{38, 41, 45, 0}),
-			))
-			t := canvas.NewText(otpCode, color.RGBA{10, 200, 200, 0})
+			otpLbl := canvas.NewText(otpCode, color.RGBA{10, 200, 200, 0})
 			var btn *widget.Button
 			btn = widget.NewButton("Copy", func() {
 				w.Clipboard().SetContent(otpCode)
 				btn.SetText("Copied")
+				btn.Style = widget.PrimaryButton
 				timer2 := time.NewTimer(time.Second * 10)
 				go func() {
 					<-timer2.C
@@ -53,27 +50,27 @@ func DrawCode(bima *bima.Bima) {
 				}()
 			})
 
-			codeContainer.AddObject(widget.NewVBox(
-				t,
-				btn,
-			))
-
 			editButton := DrawEditCode(bima, token)
-			codeContainer.AddObject(widget.NewVBox(
-				editButton,
-			))
+			row := fyne.NewContainerWithLayout(layout.NewGridLayout(3),
+				widget.NewVBox(
+					canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0}),
+					canvas.NewText(token.URL, color.RGBA{38, 41, 45, 0}),
+				), widget.NewVBox(
+					otpLbl,
+					btn,
+				), widget.NewVBox(
+					editButton,
+				))
+
+			codeContainer.AddObject(row)
+			codeContainer.AddObject(widget.NewVBox(canvas.NewLine(color.RGBA{50, 50, 50, 0})))
 		}
 	}
 
-	//s := widget.NewScrollContainer(codeContainer)
-	s := &widget.ScrollContainer{
-		Content: codeContainer,
-		Offset:  fyne.Position{0, 400},
-	}
-
-	s.Resize(fyne.Size{300, 400})
+	s := codeContainer
+	//s.Resize(fyne.Size{500, 500})
 	c := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-		widget.NewVBox(header, s))
+		widget.NewScrollContainer(widget.NewVBox(header, s)))
 	bima.UI.MainContainer = c
 	w.SetContent(bima.UI.MainContainer)
 }
