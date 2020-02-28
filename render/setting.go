@@ -9,6 +9,7 @@ import (
 )
 
 func DrawSetting(bima *bima.Bima) *widget.Button {
+	bima.AppModel.CurrentScreen = "setting"
 	//canvas := bima.UI.Window.Canvas()
 	button := widget.NewButton("Setting", func() {
 
@@ -33,7 +34,7 @@ func DrawSetting(bima *bima.Bima) *widget.Button {
 				bima.UI.Window.SetContent(bima.UI.MainContainer)
 				DrawCode(bima)
 			}),
-			widget.NewButton("Cancel", func() {
+			widget.NewButton("Back", func() {
 				bima.UI.Window.SetContent(bima.UI.MainContainer)
 				DrawCode(bima)
 			}),
