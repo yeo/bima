@@ -4,12 +4,17 @@ import (
 	"database/sql"
 
 	"fyne.io/fyne"
-	"fyne.io/fyne/widget"
+	//"fyne.io/fyne/widget"
 
 	"github.com/yeo/bima/sync"
 )
 
 type AppState int
+
+type AppModel struct {
+	FilterText    string
+	CurrentScreen string
+}
 
 const (
 	Init    AppState = 0 // Initialize the whole application
@@ -18,8 +23,9 @@ const (
 )
 
 type UI struct {
-	Window        fyne.Window
-	Header        *widget.Box
+	Window fyne.Window
+	//Header        *widget.Box
+	Header        *fyne.Container
 	MainContainer *fyne.Container
 }
 
@@ -29,6 +35,7 @@ type Bima struct {
 	DB       *sql.DB
 	Sync     *sync.Sync
 	AppState AppState
+	AppModel *AppModel
 }
 
 func New(w fyne.Window, db *sql.DB) *Bima {
@@ -39,7 +46,8 @@ func New(w fyne.Window, db *sql.DB) *Bima {
 		UI: &UI{
 			Window: w,
 		},
-		DB:   db,
-		Sync: sync.New(registry.AppID, registry.SyncURL),
+		DB:       db,
+		Sync:     sync.New(registry.AppID, registry.SyncURL),
+		AppModel: &AppModel{},
 	}
 }

@@ -7,9 +7,7 @@ import (
 )
 
 func DrawMainUI(bima *bima.Bima) {
-	content := bima.UI.MainContainer
-	bima.UI.Window.SetContent(content)
-
+	bima.AppModel.CurrentScreen = "token/list"
 	go func() {
 		secs := time.Now().Unix()
 		remainder := secs % 30
@@ -18,7 +16,9 @@ func DrawMainUI(bima *bima.Bima) {
 		for {
 			select {
 			case <-ticker.C:
-				DrawCode(bima)
+				if bima.AppModel.CurrentScreen == "token/list" {
+					DrawCode(bima)
+				}
 			}
 		}
 	}()

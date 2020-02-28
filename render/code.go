@@ -2,6 +2,7 @@ package render
 
 import (
 	"image/color"
+	"strings"
 	"time"
 
 	"fyne.io/fyne"
@@ -9,12 +10,14 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/pquerna/otp/totp"
+	"github.com/rs/zerolog/log"
 
 	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/dto"
 )
 
 func DrawCode(bima *bima.Bima) {
+	bima.AppModel.CurrentScreen = "token/list"
 	w := bima.UI.Window
 	header := bima.UI.Header
 
@@ -23,6 +26,14 @@ func DrawCode(bima *bima.Bima) {
 	if err == nil {
 		for _, token := range tokens {
 			otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
+
+			if bima.AppModel.FilterText != "" {
+				if !strings.Contains(token.Name, bima.AppModel.FilterText) &&
+					!strings.Contains(token.URL, bima.AppModel.FilterText) {
+					log.Debug().Str("Filter", bima.AppModel.FilterText).Str("Name", token.Name).Msg("Not match filter. Skip")
+					continue
+				}
+			}
 
 			codeContainer.AddObject(widget.NewVBox(
 				canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0}),
@@ -54,8 +65,15 @@ func DrawCode(bima *bima.Bima) {
 		}
 	}
 
-	s := widget.NewScrollContainer(codeContainer)
-	c := fyne.NewContainerWithLayout(layout.NewGridLayout(1), header, s)
+	//s := widget.NewScrollContainer(codeContainer)
+	s := &widget.ScrollContainer{
+		Content: codeContainer,
+		Offset:  fyne.Position{0, 400},
+	}
+
+	s.Resize(fyne.Size{300, 400})
+	c := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+		widget.NewVBox(header, s))
 	bima.UI.MainContainer = c
 	w.SetContent(bima.UI.MainContainer)
 }

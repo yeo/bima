@@ -9,6 +9,8 @@ import (
 )
 
 func DrawMasterPassword(bima *bima.Bima, done func(*bima.Bima)) {
+	bima.AppModel.CurrentScreen = "master_password"
+
 	passwordEntry := &widget.Entry{
 		PlaceHolder: "Enter Master Password",
 	}
