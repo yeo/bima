@@ -60,7 +60,7 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 	if token.ID != "" {
 		content.Append(widget.NewButton("Delete", func() {
 			token.DeletedAt = time.Now().Unix()
-			done(nil)
+			done(token)
 		}))
 	}
 

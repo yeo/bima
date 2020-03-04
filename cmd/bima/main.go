@@ -42,6 +42,7 @@ func main() {
 		MultiLine:   false,
 		OnChanged: func(t string) {
 			bima.AppModel.FilterText = t
+			render.DrawCode(bima)
 		},
 	}
 

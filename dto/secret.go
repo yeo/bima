@@ -13,18 +13,22 @@ import (
 )
 
 type Token struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	RawToken  string // Use when user input the plain text token before we save and encrypt it into Token field
-	Token     []byte `json:"token"`
-	URL       string `json:"url"`
-	Version   int    `json:"version"`
-	DeletedAt int64  `json:"deleted_at"`
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	RawToken       string // Use when user input the plain text token before we save and encrypt it into Token field
+	Token          []byte `json:"token"`
+	URL            string `json:"url"`
+	Version        int    `json:"version"`
+	DeletedAt      int64  `json:"deleted_at"`
+	decryptedToken string `json:"-"`
 }
 
 func (t *Token) DecryptToken(masterPassword string) string {
-	return string(shield.Decrypt(t.Token, masterPassword))
+	if t.decryptedToken == "" {
+		t.decryptedToken = string(shield.Decrypt(t.Token, masterPassword))
+	}
 
+	return t.decryptedToken
 }
 
 func queryTokens(query string) ([]*Token, error) {
