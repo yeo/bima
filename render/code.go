@@ -35,7 +35,7 @@ func DrawCode(bima *bima.Bima) {
 				}
 			}
 
-			otpLbl := canvas.NewText(otpCode, color.RGBA{10, 200, 200, 0})
+			otpLbl := canvas.NewText(otpCode, color.RGBA{0, 0, 0, 0})
 			var btn *widget.Button
 			btn = widget.NewButton("Copy", func() {
 				w.Clipboard().SetContent(otpCode)
@@ -53,8 +53,8 @@ func DrawCode(bima *bima.Bima) {
 			editButton := DrawEditCode(bima, token)
 			row := fyne.NewContainerWithLayout(layout.NewGridLayout(3),
 				widget.NewVBox(
-					canvas.NewText(token.Name, color.RGBA{38, 41, 45, 0}),
-					canvas.NewText(token.URL, color.RGBA{38, 41, 45, 0}),
+					canvas.NewText(token.Name, color.RGBA{10, 10, 10, 0}),
+					canvas.NewText(token.URL, color.RGBA{10, 10, 10, 0}),
 				), widget.NewVBox(
 					otpLbl,
 					btn,
