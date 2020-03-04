@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/app"
 	//"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
 	"github.com/rs/zerolog"
@@ -27,6 +28,8 @@ func main() {
 	}
 
 	a := app.New()
+	a.Settings().SetTheme(theme.LightTheme())
+
 	w := a.NewWindow("Bima")
 
 	dbCon, err := db.Setup()
