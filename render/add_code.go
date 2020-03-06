@@ -1,10 +1,12 @@
 package render
 
 import (
+	"image/color"
 	"log"
 	"time"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
@@ -13,19 +15,18 @@ import (
 )
 
 func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)) fyne.CanvasObject {
-
 	nameEntry := &widget.Entry{
-		PlaceHolder: "Name, eg: awesome_username",
+		PlaceHolder: "",
 		Text:        token.Name,
 	}
 
 	urlEntry := &widget.Entry{
-		PlaceHolder: "URL, eg: github.com",
+		PlaceHolder: "",
 		Text:        token.URL,
 	}
 
 	codeEntry := &widget.Entry{
-		PlaceHolder: "OTP Secret",
+		PlaceHolder: "",
 	}
 	if token.ID != "" {
 		codeEntry.Hide()
@@ -33,8 +34,11 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 
 	content := widget.NewVBox(
 		layout.NewSpacer(),
+		canvas.NewText("Name", color.RGBA{135, 0, 16, 255}),
 		nameEntry,
+		canvas.NewText("URL", color.RGBA{135, 0, 16, 255}),
 		urlEntry,
+		canvas.NewText("OTP Secret", color.RGBA{135, 0, 16, 255}),
 		codeEntry,
 		widget.NewButton("Save", func() {
 			token.Name = nameEntry.Text
@@ -55,7 +59,7 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 		layout.NewSpacer(),
 	)
 
-	contentLayout := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{240, 180}), content)
+	contentLayout := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 400}), content)
 
 	if token.ID != "" {
 		content.Append(widget.NewButton("Delete", func() {

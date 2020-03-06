@@ -25,6 +25,7 @@ type Sync struct {
 type SyncResponse struct {
 	Current []*dto.Token `json:"current"`
 	Removed []*dto.Token `json:"removed"`
+	Changed []*dto.Token `json:"changed"`
 }
 
 type SyncRequest struct {
@@ -112,7 +113,7 @@ func (s *Sync) Do() {
 	err = json.Unmarshal(body, &diff)
 
 	if resp.StatusCode == 200 {
-		if diff.Current != nil {
+		if diff.Changed != nil {
 			for _, t := range diff.Current {
 				dto.InsertOrReplaceSecret(t)
 			}
