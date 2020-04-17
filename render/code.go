@@ -22,13 +22,14 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 
 		otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
 		otpLbl := canvas.NewText(otpCode, color.RGBA{135, 0, 16, 255})
+		refreshLbl := canvas.NewText("", color.RGBA{135, 0, 16, 255})
 		otpLbl.TextSize = 20
 
 		done := make(chan bool)
 		go func() {
-			//secs := time.Now().Unix()
-			//remainder := secs % 30
-			//time.Sleep(time.Duration(30-remainder) * time.Second)
+			secs := time.Now().Unix()
+			remainder := secs % 30
+			time.Sleep(time.Duration(30-remainder) * time.Second)
 			ticker := time.NewTicker(30 * time.Second)
 			for {
 				select {
@@ -51,7 +52,7 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 			w.Clipboard().SetContent(otpCode)
 			btn.SetText("Copied")
 			btn.Style = widget.PrimaryButton
-			timer2 := time.NewTimer(time.Second * 10)
+			timer2 := time.NewTimer(time.Second * 3)
 			go func() {
 				<-timer2.C
 				if btn != nil {
@@ -61,24 +62,47 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 		})
 
 		actionButtons := widget.NewHBox(
+			layout.NewSpacer(),
 			btn,
-			widget.NewButton("Back", func() {
-				done <- true
-				bima.UI.Window.SetContent(bima.UI.MainContainer)
-				DrawCode(bima)
-			}),
+			layout.NewSpacer(),
 		)
 
-		container := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-			widget.NewVBox(
+		container := widget.NewHBox(
+			widget.NewHBox(
+				layout.NewSpacer(),
 				canvas.NewText(token.URL, color.RGBA{135, 0, 16, 255}),
-				canvas.NewText(token.Name, color.RGBA{135, 0, 16, 255}),
-				otpLbl,
+				layout.NewSpacer(),
 			),
-			layout.NewSpacer(),
-			actionButtons,
-			layout.NewSpacer(),
-		)
+			fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+				widget.NewHBox(
+					layout.NewSpacer(),
+					canvas.NewText(token.Name, color.RGBA{135, 0, 16, 255}),
+					layout.NewSpacer(),
+				),
+				widget.NewHBox(
+					layout.NewSpacer(),
+					otpLbl,
+					layout.NewSpacer(),
+				),
+				widget.NewHBox(
+					layout.NewSpacer(),
+					refreshLbl,
+					layout.NewSpacer(),
+				),
+				actionButtons,
+
+				widget.NewHBox(
+					layout.NewSpacer(),
+					DrawEditCode(bima, token),
+					widget.NewButton("Back", func() {
+						done <- true
+						bima.UI.Window.SetContent(bima.UI.MainContainer)
+						DrawCode(bima)
+					}),
+					layout.NewSpacer(),
+				),
+				layout.NewSpacer(),
+			))
 
 		bima.UI.Window.SetContent(container)
 		container.Refresh()
@@ -105,7 +129,6 @@ func DrawCode(bima *bima.Bima) {
 				}
 			}
 			viewButton := DrawViewCode(bima, token)
-			editButton := DrawEditCode(bima, token)
 
 			row :=
 				fyne.NewContainerWithLayout(layout.NewGridLayout(1),
@@ -114,7 +137,6 @@ func DrawCode(bima *bima.Bima) {
 							canvas.NewText(token.Name, color.RGBA{135, 0, 16, 255}),
 							layout.NewSpacer(),
 							viewButton,
-							editButton,
 						),
 					),
 				)
