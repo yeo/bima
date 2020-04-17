@@ -39,3 +39,5 @@ config :bima, BimaWeb.Endpoint, server: true
 #
 # Then you can assemble a release by calling `mix release`.
 # See `mix help release` for more information.
+
+config :stripity_stripe, api_key: System.get_env("STRIPE_SECRET")
