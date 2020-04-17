@@ -13,12 +13,18 @@ defmodule BimaWeb.Api.SyncController do
     removed_tokens = sync_remove(client_tokens, request_removed_tokens)
 
     tokens = Repo.all(from u in Token, where: u.app_id == ^app_id and is_nil(u.deleted_at))
-    render(conn, "sync.json", tokens: tokens, removed_tokens: removed_tokens)
+    render(conn, "sync.json", tokens: tokens, removed_tokens: removed_tokens, added: added_tokens)
   end
 
 
   defp sync_add_or_update(exist_tokens, client_tokens, app_id) do
     Enum.each(client_tokens, fn x -> sync_token(exist_tokens, x, app_id) end)
+  end
+
+  defp sync_add(exist_tokens) do
+  end
+
+  defp sync_update(exist_tokens) do
   end
 
   defp sync_remove(current_client_tokens, request_removed_tokens) do

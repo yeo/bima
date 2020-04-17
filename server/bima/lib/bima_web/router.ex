@@ -17,6 +17,7 @@ defmodule BimaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/buy", SubscriptionController, :index
   end
 
   # Other scopes may use custom stacks.
