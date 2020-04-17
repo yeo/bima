@@ -31,6 +31,11 @@ func (t *Token) DecryptToken(masterPassword string) string {
 	return t.decryptedToken
 }
 
+// SiteName return pretty domain name from the original URL. Basically strip the `www` and `tld` prefix
+func (t *Token) SiteName() string {
+	return t.URL
+}
+
 func queryTokens(query string) ([]*Token, error) {
 	tokens := make([]*Token, 0)
 	rows, err := dbConn.Query(query)
