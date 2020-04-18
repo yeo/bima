@@ -29,20 +29,26 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 		go func() {
 			secs := time.Now().Unix()
 			remainder := secs % 30
-			time.Sleep(time.Duration(30-remainder) * time.Second)
+			//time.Sleep(time.Duration(30-remainder) * time.Second)
+			roundTicker := time.NewTimer(time.Duration(30-remainder) * time.Second)
 			ticker := time.NewTicker(30 * time.Second)
 			for {
 				select {
+				case <-roundTicker.C:
+					ticker = time.NewTicker(30 * time.Second)
+					otpCode, _ = totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
+					otpLbl.Text = otpCode
+					otpLbl.Refresh()
 				case v := <-done:
 					if v {
 						log.Debug().Msg("Back to main screen")
 						return
 					}
 				case <-ticker.C:
-					otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
+					otpCode, _ = totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
 					otpLbl.Text = otpCode
 					otpLbl.Refresh()
-					log.Debug().Msg("Refresh token")
+					log.Debug().Str("url", token.URL).Msg("Re-generator otp token")
 				}
 			}
 		}()
@@ -68,12 +74,12 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 		)
 
 		container := widget.NewHBox(
-			widget.NewHBox(
-				layout.NewSpacer(),
-				canvas.NewText(token.URL, color.RGBA{135, 0, 16, 255}),
-				layout.NewSpacer(),
-			),
 			fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+				widget.NewHBox(
+					layout.NewSpacer(),
+					canvas.NewText(token.URL, color.RGBA{135, 0, 16, 255}),
+					layout.NewSpacer(),
+				),
 				widget.NewHBox(
 					layout.NewSpacer(),
 					canvas.NewText(token.Name, color.RGBA{135, 0, 16, 255}),
@@ -96,6 +102,7 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 					DrawEditCode(bima, token),
 					widget.NewButton("Back", func() {
 						done <- true
+						log.Debug().Str("button", "code_detail.back").Msg("Click button")
 						bima.UI.Window.SetContent(bima.UI.MainContainer)
 						DrawCode(bima)
 					}),
@@ -149,5 +156,12 @@ func DrawCode(bima *bima.Bima) {
 	c := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
 		widget.NewScrollContainer(widget.NewVBox(header, s)))
 	bima.UI.MainContainer = c
+
+	//c1 := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+	//	widget.NewScrollContainer(widget.NewVBox(&widget.Entry{})))
+	//t1 := widget.NewTabItem("Tokens", c1)
+	//t2 := widget.NewTabItem("Settings", c1)
+	//bima.UI.Window.SetContent(widget.NewTabContainer(t1, t2))
+
 	w.SetContent(bima.UI.MainContainer)
 }
