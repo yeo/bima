@@ -57,6 +57,12 @@ func runMigrations(db *sql.DB) error {
 						CREATE TABLE secret (id text not null primary key, name text, url text, token blob, version integer DEFAULT 1, deleted_at INTEGER);
 						`,
 		},
+		&MigrationUnit{
+			Name: "add salt to secret table",
+			Query: `
+						ALTER TABLE secret ADD salt text;
+						`,
+		},
 	}
 
 	for i, sqlStmt := range sqls {
