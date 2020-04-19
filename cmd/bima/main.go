@@ -22,15 +22,15 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
-	a := app.New()
-	a.Settings().SetTheme(theme.LightTheme())
-	w := a.NewWindow("Bima")
-
 	dbCon, err := db.Setup()
+	dto.SetDB(dbCon)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot setup db")
 	}
-	dto.SetDB(dbCon)
+
+	a := app.New()
+	a.Settings().SetTheme(theme.LightTheme())
+	w := a.NewWindow("Bima")
 
 	bima := bima.New(w, dbCon)
 	render.Render(bima)
