@@ -23,8 +23,7 @@ const (
 )
 
 type UI struct {
-	Window fyne.Window
-	//Header        *widget.Box
+	Window        fyne.Window
 	Header        *fyne.Container
 	MainContainer *fyne.Container
 }

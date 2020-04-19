@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/yeo/bima/core"
+	"github.com/yeo/bima/dto"
 )
 
 func DrawSetting(bima *bima.Bima) *widget.Button {
@@ -13,11 +14,12 @@ func DrawSetting(bima *bima.Bima) *widget.Button {
 	//canvas := bima.UI.Window.Canvas()
 	button := widget.NewButton("Setting", func() {
 
+		appIDEntry := &widget.Entry{
+			Text: bima.Registry.AppID,
+		}
 		appIDWidget := widget.NewVBox(
 			widget.NewLabel("App ID"),
-			&widget.Entry{
-				Text: bima.Registry.AppID,
-			},
+			appIDEntry,
 		)
 
 		syncEntry := &widget.Entry{
@@ -28,11 +30,22 @@ func DrawSetting(bima *bima.Bima) *widget.Button {
 			syncEntry,
 		)
 
+		emailEntry := &widget.Entry{
+			Text: bima.Registry.Email,
+		}
+		email := widget.NewVBox(
+			widget.NewLabel("Email"),
+			emailEntry,
+		)
+
 		actionButtons := widget.NewHBox(
 			widget.NewButton("Save", func() {
-				bima.Registry.ChangeSyncURL(syncEntry.Text)
-				bima.UI.Window.SetContent(bima.UI.MainContainer)
-				DrawCode(bima)
+				bima.Registry.AppID = appIDEntry.Text
+				bima.Registry.SyncURL = syncEntry.Text
+				bima.Registry.Email = emailEntry.Text
+				dto.SavePrefs(map[string]string{
+					"email": bima.Registry.Email,
+				})
 			}),
 			widget.NewButton("Back", func() {
 				bima.UI.Window.SetContent(bima.UI.MainContainer)
@@ -48,6 +61,7 @@ func DrawSetting(bima *bima.Bima) *widget.Button {
 
 		container := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
 		container.AddObject(appIDWidget)
+		container.AddObject(email)
 		container.AddObject(backend)
 		container.AddObject(syncWidget)
 		container.AddObject(actionButtons)

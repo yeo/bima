@@ -13,6 +13,49 @@ type Setting struct {
 	Scope string
 }
 
+func LoadConfigsByScope(scope string) (map[string]*Setting, error) {
+	configs := make(map[string]*Setting)
+
+	stmt, err := dbConn.Prepare("select name, value, scope from config where scope = ?")
+	if err != nil {
+		return nil, fmt.Errorf("Cannot prepare statement: %+w", err)
+	}
+
+	rows, err := stmt.Query(scope)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot prepare statement: %+w", err)
+	}
+	defer stmt.Close()
+
+	for rows.Next() {
+		var name, value, scope string
+		err = rows.Scan(&name, &value, &scope)
+		configs[name] = &Setting{
+			Name:  name,
+			Value: value,
+			Scope: scope,
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("Error fetching config", err)
+		}
+	}
+
+	return configs, nil
+}
+
+func LoadPrefs() (map[string]*Setting, error) {
+	return LoadConfigsByScope("prefs")
+}
+
+func SavePrefs(p map[string]string) error {
+	for k, v := range p {
+		UpdateConfig(k, v, "prefs")
+	}
+
+	return nil
+}
+
 func GetConfig(configName string, configScope string) (*Setting, error) {
 	stmt, err := dbConn.Prepare("select name, value, scope from config where name = ? and scope = ?")
 

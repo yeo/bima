@@ -17,14 +17,21 @@ const (
 type Registry struct {
 	// AppID is to identify who this is when syncing with our backend
 	// App on different platform shares this to sync data
-	AppID          string
-	DeviceToken    string
-	MasterPassword string
-	SyncURL        string
+	AppID             string
+	DeviceToken       string
+	MasterPassword    string
+	SyncURL           string
+	Email             string
+	SawOnboardVersion bool
 }
 
 func NewRegistry() *Registry {
 	r := Registry{}
+
+	prefs, err := dto.LoadPrefs()
+	if err != nil {
+		log.Error().Msg("Error when loading user preferences")
+	}
 
 	config, err := dto.GetConfig(CfgAppID, ScopeCore)
 	if err == nil && config != nil {
@@ -43,7 +50,16 @@ func NewRegistry() *Registry {
 		r.SyncURL = syncURL.Value
 	}
 
+	if prefs["email"] != nil {
+		r.Email = prefs["email"].Value
+	}
+	//r.SawOnboardVersion = prefs["sawonboardversion"]
+
 	return &r
+}
+
+func (r *Registry) Save() error {
+	return nil
 }
 
 func (r *Registry) ChangeSyncURL(url string) error {
