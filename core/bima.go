@@ -50,3 +50,14 @@ func New(w fyne.Window, db *sql.DB) *Bima {
 		AppModel: &AppModel{},
 	}
 }
+
+type Component interface {
+	Render() fyne.CanvasObject
+}
+
+func (b *Bima) Push(name string, c Component) {
+	canvasObject := c.Render()
+	b.AppModel.CurrentScreen = name
+	b.UI.Window.SetContent(canvasObject)
+	canvasObject.Refresh()
+}
