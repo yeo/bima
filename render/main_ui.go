@@ -17,12 +17,14 @@ func AddHeader(bima *bima.Bima) {
 		MultiLine:   false,
 		OnChanged: func(t string) {
 			bima.AppModel.FilterText = t
-			DrawCode(bima)
 		},
 	}
 
 	addButton := DrawNewCode(bima)
-	settingButton := DrawSetting(bima)
+	settingButton := widget.NewButton("Settings", func() {
+		s := NewSettingComponent(bima)
+		bima.Push("settings", s)
+	})
 
 	headerWidget := widget.NewHBox(searchBox, layout.NewSpacer(), addButton, settingButton)
 
