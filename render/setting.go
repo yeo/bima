@@ -52,7 +52,6 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 			dialog.ShowInformation("Success", "Your information is saved.", bima.UI.Window)
 		}),
 		widget.NewButton("Back", func() {
-			bima.UI.Window.SetContent(bima.UI.MainContainer)
 			DrawCode(bima)
 		}),
 	)
@@ -81,4 +80,8 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 
 func (s *SettingComponent) Render() fyne.CanvasObject {
 	return s.Container
+}
+
+func (s *SettingComponent) Remove() {
+	return
 }

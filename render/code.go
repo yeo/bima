@@ -103,7 +103,6 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 				widget.NewButton("Back", func() {
 					done <- true
 					log.Debug().Str("button", "code_detail.back").Msg("Click button")
-					bima.UI.Window.SetContent(bima.UI.MainContainer)
 					DrawCode(bima)
 				}),
 				layout.NewSpacer(),
@@ -118,9 +117,23 @@ func DrawViewCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 	return button
 }
 
-func DrawCode(bima *bima.Bima) {
+type ListCodeComponent struct {
+	bima          *bima.Bima
+	tokens        []*dto.Token
+	codeContainer *widget.Group
+	Container     fyne.CanvasObject
+}
+
+func (c *ListCodeComponent) Render() fyne.CanvasObject {
+	return c.Container
+}
+
+func (c *ListCodeComponent) Remove() {
+	return
+}
+
+func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 	bima.AppModel.CurrentScreen = "token/list"
-	w := bima.UI.Window
 	header := bima.UI.Header
 
 	tokens, err := dto.LoadTokens()
@@ -158,20 +171,21 @@ func DrawCode(bima *bima.Bima) {
 		}
 	}
 
-	s := codeContainer
-	tokenList := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), s)
-	//widget.NewScrollContainer(widget.NewVBox(header, s)))
+	tokenList := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer)
 	c := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		header,
 		tokenList)
 
-	bima.UI.MainContainer = c
+	return &ListCodeComponent{
+		bima:          bima,
+		tokens:        tokens,
+		Container:     c,
+		codeContainer: codeContainer,
+	}
+}
 
-	//c1 := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-	//	widget.NewScrollContainer(widget.NewVBox(&widget.Entry{})))
-	//t1 := widget.NewTabItem("Tokens", c1)
-	//t2 := widget.NewTabItem("Settings", c1)
-	//bima.UI.Window.SetContent(widget.NewTabContainer(t1, t2))
+func DrawCode(bima *bima.Bima) {
+	c := NewListCodeComponent(bima)
 
-	w.SetContent(bima.UI.MainContainer)
+	bima.Push("token/list", c)
 }

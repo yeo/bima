@@ -34,8 +34,8 @@ func AddHeader(bima *bima.Bima) {
 }
 
 func DrawMainUI(bima *bima.Bima) {
-	bima.AppModel.CurrentScreen = "token/list"
-	DrawCode(bima)
+	c := NewListCodeComponent(bima)
+	bima.Push("token/list", c)
 }
 
 // main Entrypoint to render whole ui
