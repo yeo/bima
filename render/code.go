@@ -34,10 +34,10 @@ func (c *CodeDetailComponent) Remove() {
 func NewCodeDetailComponent(bima *bima.Bima, token *dto.Token) *CodeDetailComponent {
 	w := bima.UI.Window
 
-	urlLbl := canvas.NewText(token.URL, color.RGBA{135, 0, 16, 255})
+	urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
 	urlLbl.TextSize = 20
-	nameLbl := canvas.NewText(token.Name, color.RGBA{135, 0, 16, 255})
-	refreshLbl := canvas.NewText("", color.RGBA{135, 0, 16, 255})
+	nameLbl := canvas.NewText(token.Name, color.RGBA{34, 40, 49, 255})
+	refreshLbl := canvas.NewText("", color.RGBA{57, 62, 70, 255})
 
 	otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
 	otpLbl := canvas.NewText(otpCode, color.RGBA{135, 0, 16, 255})
@@ -47,7 +47,6 @@ func NewCodeDetailComponent(bima *bima.Bima, token *dto.Token) *CodeDetailCompon
 	go func() {
 		secs := time.Now().Unix()
 		remainder := secs % 30
-		//time.Sleep(time.Duration(30-remainder) * time.Second)
 		secondToRefresh := 30 - remainder
 		ticker := time.NewTicker(1 * time.Second)
 		refreshLbl.Text = fmt.Sprintf("Regenerate in %2d s", secondToRefresh)
@@ -111,14 +110,17 @@ func NewCodeDetailComponent(bima *bima.Bima, token *dto.Token) *CodeDetailCompon
 		layout.NewSpacer(),
 
 		widget.NewHBox(
-			layout.NewSpacer(),
-			DrawEditCode(bima, token),
 			widget.NewButton("Back", func() {
 				done <- true
 				log.Debug().Str("button", "code_detail.back").Msg("Click button")
 				DrawCode(bima)
 			}),
 			layout.NewSpacer(),
+			widget.NewButton("Delete", func() {
+				// TODO: Show confirmation
+				// Delete, then back to main screen
+			}),
+			DrawEditCode(bima, token),
 		),
 		layout.NewSpacer(),
 	)
@@ -150,6 +152,7 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 
 	tokens, err := dto.LoadTokens()
 	codeContainer := widget.NewGroupWithScroller("Tokens")
+
 	if err == nil {
 		for _, token := range tokens {
 
@@ -165,22 +168,20 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 				bima.Push("token/view", c)
 			})
 
-			row :=
-				widget.NewVBox(
-					widget.NewHBox(
-						layout.NewSpacer(),
-						canvas.NewText(token.URL, color.RGBA{135, 0, 16, 255}),
-						layout.NewSpacer(),
-					),
+			urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
+			urlLbl.TextSize = 17
 
-					widget.NewHBox(
-						layout.NewSpacer(),
-						canvas.NewText(token.Name, color.RGBA{135, 0, 16, 255}),
-						layout.NewSpacer(),
-						viewButton,
-					),
+			nameLbl := canvas.NewText(token.Name, color.RGBA{34, 40, 49, 255})
+			row := widget.NewVBox(
+				widget.NewHBox(urlLbl),
+				widget.NewHBox(
+					nameLbl,
 					layout.NewSpacer(),
-				)
+					viewButton,
+				),
+				layout.NewSpacer(),
+				canvas.NewLine(color.RGBA{34, 40, 49, 50}),
+			)
 
 			codeContainer.Append(row)
 		}

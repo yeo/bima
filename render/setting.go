@@ -51,6 +51,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 
 			dialog.ShowInformation("Success", "Your information is saved.", bima.UI.Window)
 		}),
+		layout.NewSpacer(),
 		widget.NewButton("Back", func() {
 			DrawCode(bima)
 		}),
