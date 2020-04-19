@@ -27,6 +27,9 @@ defmodule BimaWeb.Api.SyncController do
   defp sync_update(exist_tokens) do
   end
 
+  defp added_tokens() do
+  end
+
   defp sync_remove(current_client_tokens, request_removed_tokens) do
     removed_tokens = Enum.map(request_removed_tokens, fn request_token ->
       token = Repo.get(Token, request_token["id"])

@@ -1,4 +1,4 @@
-defmodule BimaWeb.PageController do
+defmodule BimaWeb.SubscriptionController do
   use BimaWeb, :controller
 
   def index(conn, _params) do
