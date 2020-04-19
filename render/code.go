@@ -31,16 +31,23 @@ func (c *CodeDetailComponent) Remove() {
 	//TODO: Remove timer, close channel
 }
 
-func NewCodeDetailComponent(bima *bima.Bima, token *dto.Token) *CodeDetailComponent {
+func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponent {
 	w := bima.UI.Window
+
+	var token *dto.Token
+	for _, v := range bima.AppModel.Tokens {
+		if v.ID == tokenID {
+			token = v
+		}
+	}
 
 	urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
 	urlLbl.TextSize = 20
-	nameLbl := canvas.NewText(token.Name, color.RGBA{34, 40, 49, 255})
+	nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
 	refreshLbl := canvas.NewText("", color.RGBA{57, 62, 70, 255})
 
 	otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
-	otpLbl := canvas.NewText(otpCode, color.RGBA{135, 0, 16, 255})
+	otpLbl := canvas.NewText(otpCode, color.RGBA{252, 81, 133, 255})
 	otpLbl.TextSize = 40
 
 	done := make(chan bool)
@@ -154,6 +161,7 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 	codeContainer := widget.NewGroupWithScroller("Tokens")
 
 	if err == nil {
+		bima.AppModel.Tokens = tokens
 		for _, token := range tokens {
 
 			if bima.AppModel.FilterText != "" {
@@ -163,15 +171,17 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 					continue
 				}
 			}
-			viewButton := widget.NewButton("View", func() {
-				c := NewCodeDetailComponent(bima, token)
-				bima.Push("token/view", c)
-			})
+			viewButton := widget.NewButton("View", func(t *dto.Token) func() {
+				return func() {
+					c := NewCodeDetailComponent(bima, t.ID)
+					bima.Push("token/view", c)
+				}
+			}(token))
 
 			urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
 			urlLbl.TextSize = 17
 
-			nameLbl := canvas.NewText(token.Name, color.RGBA{34, 40, 49, 255})
+			nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
 			row := widget.NewVBox(
 				widget.NewHBox(urlLbl),
 				widget.NewHBox(

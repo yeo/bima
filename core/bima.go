@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne"
 	//"fyne.io/fyne/widget"
 
+	"github.com/yeo/bima/dto"
 	"github.com/yeo/bima/sync"
 )
 
@@ -14,6 +15,7 @@ type AppState int
 type AppModel struct {
 	FilterText    string
 	CurrentScreen string
+	Tokens        []*dto.Token
 }
 
 const (
