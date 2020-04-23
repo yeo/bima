@@ -8,6 +8,7 @@ import (
 
 	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/dto"
+	"github.com/yeo/bima/exporter"
 )
 
 type SettingComponent struct {
@@ -63,12 +64,24 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		},
 	)
 
+	exportButton := widget.NewHBox(
+		widget.NewButton("Export", func() {
+			// TODO: FIX this to make it run on window and write to home
+			if err := exporter.Export(bima.Registry.MasterPassword, "/tmp/bima.csv"); err == nil {
+				dialog.ShowInformation("Success", "Your tokens are exported \nto /tmp/bima.csv", bima.UI.Window)
+			} else {
+				dialog.ShowInformation("Err", "Export fail", bima.UI.Window)
+			}
+		}),
+	)
+
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
 	container.AddObject(appIDWidget)
 	container.AddObject(email)
 	container.AddObject(backend)
 	container.AddObject(syncWidget)
 	container.AddObject(actionButtons)
+	container.AddObject(exportButton)
 	container.AddObject(layout.NewSpacer())
 
 	s := SettingComponent{
