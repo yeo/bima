@@ -3,7 +3,6 @@ package render
 import (
 	"image/color"
 	"log"
-	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -61,13 +60,6 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 
 	contentLayout := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 400}), content)
 
-	if token.ID != "" {
-		content.Append(widget.NewButton("Delete", func() {
-			token.DeletedAt = time.Now().Unix()
-			done(token)
-		}))
-	}
-
 	return contentLayout
 }
 
@@ -112,19 +104,9 @@ func DrawEditCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 		}
 		log.Println("Delete at for token", token.DeletedAt)
 
-		if token.DeletedAt < 1 {
-			if err := dto.UpdateSecret(token); err == nil {
-				if popup != nil {
-					popup.Hide()
-				}
-			}
-		}
-
-		if token.DeletedAt > 1 {
-			if err := dto.DeleteSecret(token); err == nil {
-				if popup != nil {
-					popup.Hide()
-				}
+		if err := dto.UpdateSecret(token); err == nil {
+			if popup != nil {
+				popup.Hide()
 			}
 		}
 

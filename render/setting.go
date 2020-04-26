@@ -88,8 +88,8 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	container.AddObject(backend)
 	container.AddObject(syncWidget)
 	container.AddObject(actionButtons)
-	container.AddObject(exportButton)
 	container.AddObject(changePasswordButton)
+	container.AddObject(exportButton)
 	container.AddObject(layout.NewSpacer())
 
 	s := SettingComponent{

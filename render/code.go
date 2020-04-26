@@ -8,6 +8,7 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/pquerna/otp/totp"
@@ -124,8 +125,13 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 			}),
 			layout.NewSpacer(),
 			widget.NewButton("Delete", func() {
-				// TODO: Show confirmation
-				// Delete, then back to main screen
+				dialog.ShowConfirm("Are you sure to delete?", "URL: "+token.URL+"\nName: "+token.Name, func(confirm bool) {
+					if confirm == true {
+						token.DeletedAt = time.Now().Unix()
+						dto.DeleteSecret(token)
+						DrawCode(bima)
+					}
+				}, bima.UI.Window)
 			}),
 			DrawEditCode(bima, token),
 		),
