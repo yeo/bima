@@ -71,11 +71,18 @@ func (r *Registry) ChangeSyncURL(url string) error {
 
 func (r *Registry) SaveMasterPassword(password string) error {
 	if r.MasterPassword == "" {
-		// First time ever set password
+		log.Info().Msg("Save fresh new password")
+		// First time we ever set password
 		r.MasterPassword = password
 		return nil
 	}
 
-	// Here we already has a password we need to re-encrypt data with new key
+	log.Info().Msg("Update an existing password")
+	if err := dto.ChangePassword(r.MasterPassword, password); err == nil {
+		r.MasterPassword = password
+	} else {
+		return err
+	}
+
 	return nil
 }

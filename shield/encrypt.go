@@ -8,6 +8,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
+
+	"github.com/rs/zerolog/log"
 )
 
 func createHash(key string) string {
@@ -44,7 +46,8 @@ func Decrypt(data []byte, passphrase string) []byte {
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		log.Error().Str("data", string(data)).Msg("Cannot decrypt. Maybe password is changed?")
+		return nil
 	}
 	return plaintext
 }

@@ -130,6 +130,32 @@ func UpdateSecret(token *Token) error {
 	return err
 }
 
+func ChangePassword(oldPass, newPass string) error {
+	tx, _ := dbConn.Begin()
+	tokens, err := LoadTokens()
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	for _, token := range tokens {
+		log.Info().Str("Token", token.ID).Msg("Reencrypt token")
+		otpSecret := token.DecryptToken(oldPass)
+
+		token.Token = shield.Encrypt([]byte(otpSecret), newPass)
+
+		_, err := tx.Exec("UPDATE secret SET token = ?, version = version + 1 WHERE id=?", token.Token, token.ID)
+		log.Err(err).Msg("change password")
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
 func InsertOrReplaceSecret(token *Token) error {
 	currentToken, err := LoadSecretByID(token.ID)
 	if err != nil {

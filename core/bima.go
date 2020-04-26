@@ -10,6 +10,10 @@ import (
 	"github.com/yeo/bima/sync"
 )
 
+const (
+	AppVersion = "0.1"
+)
+
 type AppState int
 
 type AppModel struct {

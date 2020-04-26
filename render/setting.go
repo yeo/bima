@@ -75,6 +75,13 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		}),
 	)
 
+	changePasswordButton := widget.NewHBox(
+		widget.NewButton("Change Password", func() {
+			p := NewPasswordComponent(bima, ChangePasswordForm)
+			bima.Push("changepassword", p)
+		}),
+	)
+
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
 	container.AddObject(appIDWidget)
 	container.AddObject(email)
@@ -82,6 +89,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	container.AddObject(syncWidget)
 	container.AddObject(actionButtons)
 	container.AddObject(exportButton)
+	container.AddObject(changePasswordButton)
 	container.AddObject(layout.NewSpacer())
 
 	s := SettingComponent{
