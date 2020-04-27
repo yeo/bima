@@ -64,6 +64,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 			case v := <-done:
 				if v {
 					log.Debug().Msg("Back to main screen")
+					ticker.Stop()
 					return
 				}
 			case <-ticker.C:
@@ -150,8 +151,6 @@ type ListCodeComponent struct {
 	codeContainer *widget.Group
 	Container     fyne.CanvasObject
 
-	tokenRows []*widget.Box
-
 	done       chan (bool)
 	ticker     *time.Ticker
 	codeFilter string
@@ -236,7 +235,6 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 	header := bima.UI.Header
 
 	tokens, err := dto.LoadTokens()
-	tokenRows := make([]*widget.Box, 0)
 	codeContainer := widget.NewGroupWithScroller("Tokens")
 
 	if err == nil {
@@ -274,7 +272,6 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 			canvas.NewLine(color.RGBA{34, 40, 49, 50}),
 		)
 
-		tokenRows = append(tokenRows, row)
 		codeContainer.Append(row)
 	}
 	codeContainer.Refresh()
@@ -287,7 +284,6 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 		bima:          bima,
 		Container:     c,
 		codeContainer: codeContainer,
-		tokenRows:     tokenRows,
 		ticker:        time.NewTicker(500 * time.Millisecond),
 		done:          make(chan bool),
 	}
