@@ -189,7 +189,7 @@ func (c *ListCodeComponent) renderCode() {
 
 	codeContainer := widget.NewGroupWithScroller("Tokens")
 
-	c.codeFilter = bima.AppModel.FilterText
+	c.codeFilter = strings.Trim(bima.AppModel.FilterText, " ")
 
 	for _, token := range tokens {
 		if c.codeFilter != "" {
@@ -226,6 +226,8 @@ func (c *ListCodeComponent) renderCode() {
 	}
 
 	lastRow := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer)
+
+	// TODO: See if we can avoid setting to nil and check memory leak
 	c.Container.(*fyne.Container).Objects[1] = nil
 	c.Container.(*fyne.Container).Objects[1] = lastRow
 	c.Container.Refresh()
