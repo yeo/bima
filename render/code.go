@@ -147,73 +147,153 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 
 type ListCodeComponent struct {
 	bima          *bima.Bima
-	tokens        []*dto.Token
 	codeContainer *widget.Group
 	Container     fyne.CanvasObject
+
+	tokenRows []*widget.Box
+
+	done       chan (bool)
+	ticker     *time.Ticker
+	codeFilter string
 }
 
 func (c *ListCodeComponent) Render() fyne.CanvasObject {
+	c.renderCode()
+
 	return c.Container
 }
 
 func (c *ListCodeComponent) Remove() {
+	c.done <- true
+	c.ticker.Stop()
 	return
+}
+
+func (c *ListCodeComponent) Refresh() {
+	go func() {
+		for {
+			select {
+			case <-c.done:
+				return
+			case <-c.ticker.C:
+				if c.codeFilter != c.bima.AppModel.FilterText {
+					c.renderCode()
+				}
+			}
+		}
+	}()
+}
+
+func (c *ListCodeComponent) renderCode() {
+	bima := c.bima
+	tokens := c.bima.AppModel.Tokens
+
+	codeContainer := widget.NewGroupWithScroller("Tokens")
+
+	c.codeFilter = bima.AppModel.FilterText
+
+	for _, token := range tokens {
+		if c.codeFilter != "" {
+			if !strings.Contains(token.Name, bima.AppModel.FilterText) &&
+				!strings.Contains(token.URL, bima.AppModel.FilterText) {
+				log.Debug().Str("Filter", bima.AppModel.FilterText).Str("Name", token.Name).Msg("Not match filter. Skip")
+				continue
+			}
+		}
+
+		viewButton := widget.NewButton("View", func(t *dto.Token) func() {
+			return func() {
+				c := NewCodeDetailComponent(bima, t.ID)
+				bima.Push("token/view", c)
+			}
+		}(token))
+
+		urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
+		urlLbl.TextSize = 17
+
+		nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
+		row := widget.NewVBox(
+			widget.NewHBox(urlLbl),
+			widget.NewHBox(
+				nameLbl,
+				layout.NewSpacer(),
+				viewButton,
+			),
+			layout.NewSpacer(),
+			canvas.NewLine(color.RGBA{34, 40, 49, 50}),
+		)
+
+		codeContainer.Append(row)
+	}
+
+	lastRow := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer)
+	c.Container.(*fyne.Container).Objects[1] = nil
+	c.Container.(*fyne.Container).Objects[1] = lastRow
+	c.Container.Refresh()
 }
 
 func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 	header := bima.UI.Header
 
 	tokens, err := dto.LoadTokens()
+	tokenRows := make([]*widget.Box, 0)
 	codeContainer := widget.NewGroupWithScroller("Tokens")
 
 	if err == nil {
 		bima.AppModel.Tokens = tokens
-		for _, token := range tokens {
-
-			if bima.AppModel.FilterText != "" {
-				if !strings.Contains(token.Name, bima.AppModel.FilterText) &&
-					!strings.Contains(token.URL, bima.AppModel.FilterText) {
-					log.Debug().Str("Filter", bima.AppModel.FilterText).Str("Name", token.Name).Msg("Not match filter. Skip")
-					continue
-				}
-			}
-			viewButton := widget.NewButton("View", func(t *dto.Token) func() {
-				return func() {
-					c := NewCodeDetailComponent(bima, t.ID)
-					bima.Push("token/view", c)
-				}
-			}(token))
-
-			urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
-			urlLbl.TextSize = 17
-
-			nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
-			row := widget.NewVBox(
-				widget.NewHBox(urlLbl),
-				widget.NewHBox(
-					nameLbl,
-					layout.NewSpacer(),
-					viewButton,
-				),
-				layout.NewSpacer(),
-				canvas.NewLine(color.RGBA{34, 40, 49, 50}),
-			)
-
-			codeContainer.Append(row)
-		}
 	}
 
-	tokenList := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer)
+	for _, token := range tokens {
+		if bima.AppModel.FilterText != "" {
+			if !strings.Contains(token.Name, bima.AppModel.FilterText) &&
+				!strings.Contains(token.URL, bima.AppModel.FilterText) {
+				log.Debug().Str("Filter", bima.AppModel.FilterText).Str("Name", token.Name).Msg("Not match filter. Skip")
+				continue
+			}
+		}
+
+		viewButton := widget.NewButton("View", func(t *dto.Token) func() {
+			return func() {
+				c := NewCodeDetailComponent(bima, t.ID)
+				bima.Push("token/view", c)
+			}
+		}(token))
+
+		urlLbl := canvas.NewText(token.URL, color.RGBA{0, 173, 181, 255})
+		urlLbl.TextSize = 17
+
+		nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
+		row := widget.NewVBox(
+			widget.NewHBox(urlLbl),
+			widget.NewHBox(
+				nameLbl,
+				layout.NewSpacer(),
+				viewButton,
+			),
+			layout.NewSpacer(),
+			canvas.NewLine(color.RGBA{34, 40, 49, 50}),
+		)
+
+		tokenRows = append(tokenRows, row)
+		codeContainer.Append(row)
+	}
+	codeContainer.Refresh()
+
 	c := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		header,
-		tokenList)
+		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer))
 
-	return &ListCodeComponent{
+	p := &ListCodeComponent{
 		bima:          bima,
-		tokens:        tokens,
 		Container:     c,
 		codeContainer: codeContainer,
+		tokenRows:     tokenRows,
+		ticker:        time.NewTicker(500 * time.Millisecond),
+		done:          make(chan bool),
 	}
+
+	p.Refresh()
+	return p
 }
 
 func DrawCode(bima *bima.Bima) {
