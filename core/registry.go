@@ -1,6 +1,8 @@
 package bima
 
 import (
+	//"crypto/rand"
+
 	"github.com/rs/zerolog/log"
 	"github.com/satori/go.uuid"
 
@@ -12,17 +14,19 @@ const (
 	CfgAppID          = "app_id"
 	CfgSyncURL        = "sync_url"
 	ScopeCore         = "bima"
+	CfgEncryptionKey  = "encryption_key"
 )
 
 type Registry struct {
 	// AppID is to identify who this is when syncing with our backend
 	// App on different platform shares this to sync data
-	AppID             string
-	DeviceToken       string
-	MasterPassword    string
-	SyncURL           string
-	Email             string
-	SawOnboardVersion bool
+	AppID string
+
+	MasterPassword string
+	HasSetPassword string
+
+	SyncURL string
+	Email   string
 }
 
 func NewRegistry() *Registry {
@@ -53,7 +57,9 @@ func NewRegistry() *Registry {
 	if prefs["email"] != nil {
 		r.Email = prefs["email"].Value
 	}
-	//r.SawOnboardVersion = prefs["sawonboardversion"]
+	if prefs["has_set_password"] != nil {
+		r.HasSetPassword = prefs["has_set_password"].Value
+	}
 
 	return &r
 }
@@ -74,6 +80,14 @@ func (r *Registry) SaveMasterPassword(password string) error {
 		log.Info().Msg("Save fresh new password")
 		// First time we ever set password
 		r.MasterPassword = password
+
+		prefs := map[string]string{
+			"has_set_password": "y",
+		}
+		if err := dto.SavePrefs(prefs); err != nil {
+			panic("Cannot save to sqlite")
+		}
+
 		return nil
 	}
 

@@ -12,6 +12,22 @@ import (
 )
 
 func AddHeader(bima *bima.Bima) {
+}
+
+type HeaderComponent struct {
+	bima      *bima.Bima
+	Container *fyne.Container
+}
+
+func (h *HeaderComponent) Render() *fyne.Container {
+	return h.Container
+}
+
+func (h *HeaderComponent) Remove() {
+	return
+}
+
+func NewHeaderComponent(bima *bima.Bima) *HeaderComponent {
 	searchBox := &widget.Entry{
 		PlaceHolder: "Search",
 		MultiLine:   false,
@@ -27,10 +43,14 @@ func AddHeader(bima *bima.Bima) {
 	})
 
 	headerWidget := widget.NewHBox(searchBox, layout.NewSpacer(), addButton, settingButton)
+	container := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 50}), headerWidget)
 
-	header := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 50}), headerWidget)
+	h := HeaderComponent{
+		bima:      bima,
+		Container: container,
+	}
 
-	bima.UI.Header = header
+	return &h
 }
 
 func DrawMainUI(bima *bima.Bima) {
@@ -40,20 +60,27 @@ func DrawMainUI(bima *bima.Bima) {
 
 // main Entrypoint to render whole ui
 func Render(bima *bima.Bima) {
-	AddHeader(bima)
+	h := NewHeaderComponent(bima)
+	bima.UI.Header = h.Render()
 
-	// To avoid the annoying of password when debugging, we support set password via env.
-	if password := os.Getenv("BIMAPASS"); password != "" {
-		bima.Registry.MasterPassword = password
-	}
-
-	if bima.Registry.MasterPassword == "" {
-		DrawMasterPassword(bima, DrawMainUI)
+	// If never see onboard yet, we should show up onboard screen to enter email and setup password
+	if bima.Registry.HasSetPassword == "" {
+		c := NewPasswordComponent(bima, NewPasswordForm)
+		bima.Push("onboard", c)
 	} else {
-		DrawMainUI(bima)
-	}
+		// To avoid the annoying of password when debugging, we support set password via env.
+		if password := os.Getenv("BIMAPASS"); password != "" {
+			bima.Registry.MasterPassword = password
+		}
 
-	go bima.Sync.Watch()
+		if bima.Registry.MasterPassword == "" {
+			c := NewPasswordComponent(bima, EnterPasswordForm)
+			bima.Push("unlock", c)
+		} else {
+			DrawMainUI(bima)
+			//Check if sync is enable or not. If yes, we will start syncing
+		}
+	}
 
 	bima.UI.Window.Resize(fyne.NewSize(320, 640))
 	bima.UI.Window.ShowAndRun()

@@ -243,7 +243,6 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 	}
 
 	codeContainer := widget.NewGroupWithScroller("Tokens")
-
 	c := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		header,
 		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer))

@@ -52,10 +52,10 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 			urlEntry.SetText("")
 			codeEntry.SetText("")
 		}),
-		widget.NewButton("Cancel", func() {
+		layout.NewSpacer(),
+		widget.NewButton("Close", func() {
 			done(nil)
 		}),
-		layout.NewSpacer(),
 	)
 
 	contentLayout := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 400}), content)

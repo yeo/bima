@@ -1,6 +1,8 @@
 package render
 
 import (
+	"crypto/rand"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
@@ -15,6 +17,7 @@ type PasswordFormType int
 const (
 	NewPasswordForm    PasswordFormType = iota
 	ChangePasswordForm PasswordFormType = iota
+	EnterPasswordForm  PasswordFormType = iota
 )
 
 type PasswordComponent struct {
@@ -34,24 +37,55 @@ func (p *PasswordComponent) Remove() {
 	return
 }
 
-func (p *PasswordComponent) Save() error {
-	log.Debug().Str("password", p.passwordEntry.Text).Msg("Save New Password")
-
-	if (p.passwordEntry.Text == "") || (p.passwordEntry.Text != p.confirmPasswordEntry.Text) {
-		dialog.ShowInformation("Password validation fail", "Both pass need to be same and not empty", p.bima.UI.Window)
-		return nil
+func (p *PasswordComponent) generateEncryptionKey() []byte {
+	// Generate a 24 byte keys length
+	b := make([]byte, 24)
+	_, err := rand.Read(b)
+	if err != nil {
+		// TODO: Show error to end user
+		panic("Cannot generate key")
 	}
 
-	p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
+	return b
+}
+
+func (p *PasswordComponent) Save() error {
+	if p.formType == ChangePasswordForm || p.formType == NewPasswordForm {
+		if (p.passwordEntry.Text == "") || (p.passwordEntry.Text != p.confirmPasswordEntry.Text) {
+			dialog.ShowInformation("Password validation fail", "Both pass need to be same and not empty", p.bima.UI.Window)
+			return nil
+		}
+	}
+
+	switch p.formType {
+	case ChangePasswordForm:
+		log.Debug().Str("password", p.passwordEntry.Text).Msg("Enter New Password")
+		p.generateEncryptionKey()
+		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
+		DrawMainUI(p.bima)
+	case NewPasswordForm:
+		// Onboard form or enter password form
+		log.Debug().Str("password", p.passwordEntry.Text).Msg("Change Password")
+		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
+		DrawMainUI(p.bima)
+	case EnterPasswordForm:
+		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
+		DrawMainUI(p.bima)
+	}
+
 	return nil
 }
 
 func NewPasswordComponent(bima *bima.Bima, formType PasswordFormType) *PasswordComponent {
-	actionLabel := "Save"
-	passwordLabel := "Enter password"
+	actionLabel := "Next"
+	passwordLabel := "Enter Master Password"
 	if formType == ChangePasswordForm {
 		actionLabel = "Change Password"
 		passwordLabel = "Enter New Password"
+	}
+
+	if formType == EnterPasswordForm {
+		actionLabel = "Unlock"
 	}
 
 	p := PasswordComponent{
@@ -69,43 +103,32 @@ func NewPasswordComponent(bima *bima.Bima, formType PasswordFormType) *PasswordC
 		p.Save()
 	})
 
-	passwordForm := widget.NewVBox(
-		widget.NewLabel("Pick a password to encrypt your data"),
-		p.passwordEntry,
-		p.confirmPasswordEntry,
-		p.actionButton,
-		layout.NewSpacer(),
-		widget.NewButton("Back", func() {
-			DrawCode(bima)
-		}),
-	)
+	passwordForm := widget.NewVBox()
+
+	if formType == ChangePasswordForm || formType == NewPasswordForm {
+		passwordForm.Append(widget.NewLabel("Pick a password to encrypt your data.\nIf you forgot this password,\nyour data is lost forever.\nMake sure it is at least 16 character"))
+	} else {
+		passwordForm.Append(widget.NewLabel("Enter password to decrypt your token\n"))
+	}
+
+	passwordForm.Append(p.passwordEntry)
+
+	if formType == ChangePasswordForm || formType == NewPasswordForm {
+		passwordForm.Append(p.confirmPasswordEntry)
+	}
+
+	passwordForm.Append(p.actionButton)
+	passwordForm.Append(layout.NewSpacer())
+
+	if p.formType == ChangePasswordForm {
+		passwordForm.Append(
+			widget.NewButton("Back", func() {
+				DrawCode(bima)
+			}))
+	}
+
 	p.Container.AddObject(passwordForm)
 	p.Container.AddObject(layout.NewSpacer())
 
 	return &p
-}
-
-func DrawMasterPassword(bima *bima.Bima, done func(*bima.Bima)) {
-	bima.AppModel.CurrentScreen = "master_password"
-
-	passwordEntry := &widget.Entry{
-		PlaceHolder: "Enter Master Password",
-	}
-
-	passwordField := widget.NewButton("Unlock", func() {
-		bima.Registry.SaveMasterPassword(passwordEntry.Text)
-		done(bima)
-	})
-	passwordForm := widget.NewVBox(
-		layout.NewSpacer(),
-		passwordEntry, passwordField,
-		layout.NewSpacer(),
-	)
-
-	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
-	container.AddObject(layout.NewSpacer())
-	container.AddObject(passwordForm)
-	container.AddObject(layout.NewSpacer())
-
-	bima.UI.Window.SetContent(container)
 }
