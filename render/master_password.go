@@ -103,7 +103,9 @@ func NewPasswordComponent(bima *bima.Bima, formType PasswordFormType) *PasswordC
 		p.Save()
 	})
 
-	passwordForm := widget.NewVBox()
+	passwordForm := widget.NewVBox(
+		layout.NewSpacer(),
+	)
 
 	if formType == ChangePasswordForm || formType == NewPasswordForm {
 		passwordForm.Append(widget.NewLabel("Pick a password to encrypt your data.\nIf you forgot this password,\nyour data is lost forever.\nMake sure it is at least 16 character"))

@@ -62,6 +62,7 @@ func DrawMainUI(bima *bima.Bima) {
 func Render(bima *bima.Bima) {
 	h := NewHeaderComponent(bima)
 	bima.UI.Header = h.Render()
+	go bima.Sync.Watch()
 
 	// If never see onboard yet, we should show up onboard screen to enter email and setup password
 	if bima.Registry.HasSetPassword == "" {
@@ -78,7 +79,6 @@ func Render(bima *bima.Bima) {
 			bima.Push("unlock", c)
 		} else {
 			DrawMainUI(bima)
-			//Check if sync is enable or not. If yes, we will start syncing
 		}
 	}
 

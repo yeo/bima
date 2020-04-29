@@ -149,7 +149,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 type ListCodeComponent struct {
 	bima          *bima.Bima
 	codeContainer *widget.Group
-	Container     fyne.CanvasObject
+	Container     *fyne.Container
 
 	done       chan (bool)
 	ticker     *time.Ticker
@@ -228,8 +228,8 @@ func (c *ListCodeComponent) renderCode() {
 	lastRow := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer)
 
 	// TODO: See if we can avoid setting to nil and check memory leak
-	c.Container.(*fyne.Container).Objects[1] = nil
-	c.Container.(*fyne.Container).Objects[1] = lastRow
+	c.Container.Objects[1] = nil
+	c.Container.Objects[1] = lastRow
 	c.Container.Refresh()
 }
 

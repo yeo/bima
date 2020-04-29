@@ -1,12 +1,9 @@
 package main
 
 import (
-	"os"
-
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/theme"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/yeo/bima/core"
@@ -16,11 +13,7 @@ import (
 )
 
 func main() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if debugFlag := os.Getenv("DEBUG"); debugFlag == "1" {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
+	bima.InitLog()
 
 	dbCon, err := db.Setup()
 	dto.SetDB(dbCon)
@@ -35,10 +28,5 @@ func main() {
 	bima := bima.New(w, dbCon)
 	render.Render(bima)
 
-	cleanup(bima)
-}
-
-func cleanup(bima *bima.Bima) {
-	bima.DB.Close()
-	bima.Sync.Done <- true
+	bima.Cleanup()
 }
