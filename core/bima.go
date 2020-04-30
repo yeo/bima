@@ -51,7 +51,8 @@ type Bima struct {
 	AppModel *AppModel
 }
 
-func New(w fyne.Window, db *sql.DB) *Bima {
+func New(a fyne.App, db *sql.DB) *Bima {
+	w := a.NewWindow("Bima " + AppVersion)
 	registry := NewRegistry()
 
 	return &Bima{

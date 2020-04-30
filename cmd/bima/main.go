@@ -23,9 +23,7 @@ func main() {
 
 	a := app.New()
 	a.Settings().SetTheme(theme.LightTheme())
-	w := a.NewWindow("Bima")
-
-	bima := bima.New(w, dbCon)
+	bima := bima.New(a, dbCon)
 	render.Render(bima)
 
 	bima.Cleanup()

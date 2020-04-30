@@ -57,12 +57,6 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 			DrawCode(bima)
 		}),
 	)
-	syncWidget := widget.NewHBox(
-		&widget.Check{
-			Checked: false,
-			Text:    "Enable Sync",
-		},
-	)
 
 	exportButton := widget.NewHBox(
 		widget.NewButton("Export", func() {
@@ -86,7 +80,6 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	container.AddObject(appIDWidget)
 	container.AddObject(email)
 	container.AddObject(backend)
-	container.AddObject(syncWidget)
 	container.AddObject(actionButtons)
 	container.AddObject(changePasswordButton)
 	container.AddObject(exportButton)
