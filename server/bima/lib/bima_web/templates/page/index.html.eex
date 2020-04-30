@@ -1,115 +1,110 @@
-<section class="phx-hero">
-  <h1>2FA desktop app that secure, fast and lightweight</h1>
-  <p>Finally, a native 2FA app that you'll love</p>
+<main class="container">
 
-  <img src="<%= Routes.static_path(@conn, "/images/screenshot.png") %>" />
+	<section class="phx-hero">
+		<h1>Secure, Fast, Lightweight 2FA desktop app</h1>
+		<p>Finally, a native 2FA app won't eat your RAM</p>
 
-  <a class="button" href="#getting-started" title="Getting Started">Download</a>
-</section>
+		<img src="<%= Routes.static_path(@conn, "/images/screenshot.png") %>" />
 
-<section class="row">
-  <article class="column">
-    <h2 class="title">Features</h2>
+		<a class="button" href="#getting-started" title="Getting Started">Download</a>
+	</section>
 
-    Fast, Leightweight
+	<section="container box">
+		<h2 class="title">Features</h2>
 
-    Use less than 10MB ram.
+    E2E Encryption
+    TO sync data among multiple devices, your data is encrypted with your master key, and push to our backend.
+    When you sync this data back to other devices, you use that same master key to decrypt data. And that's it.
 
-    Syncing
-    
-    Encryption
-    All your data is encrypted using AES-GCM with a key that you chose. This data is sync to our server
-    and even us cannot see your data
+    Simple
 
 
-  </article>
-</section>
+		<div class="row">
+			<article class="column">
+				<h4>Fast</h4>
+				<p>Native app</p>
+			</article>
+			<article class="column">
+				<h4>Lightweight</h4>
+				<p>Use less than 10MB RAM and will not make your fan go crazy</p>
+			</article>
+			<article class="column">
+				<h4>Secure</h4>
+				<p>All your data is encrypted using AES-GCM. This data is sync to our server and even us cannot see your data.</p>
+			</article>
+		</div>
+	</section>
 
+	<section="container box">
+		<h2 class="title">Download</h2>
+		
+		<div class="row">
+			<article class="column">
+				<h4>Mac</h4>
+				<a class="button" href="#getting-started" title="Getting Started">Download</a>
+			</article>
+			<article class="column">
+				<h4>Linux</h4>
+				<a class="button" href="#getting-started" title="Getting Started">Download</a>
+			</article>
+			<article class="column">
+				<h4>Window</h4>
+				<a class="button" href="#getting-started" title="Getting Started">Download</a>
+			</article>
+		</div>
+	</section>
 
-<section class="row">
-  <article class="column">
-    <h2 class="title">Security</h2>
-    All your data is encrypted using AES-GCM with a key that you chose. This data is sync to our server
-    and even us cannot see your data.
+	<section class="row">
+		<article class="column">
+			<h2 class="title">Security</h2>
+			All your data is encrypted using AES-GCM with a key that you chose. This data is sync to our server
+			and even us cannot see your data.
 
-    If you don't want the syncing features, you can turn off syncing, and simply put the database into a dropbox, icloud sync folder
-    to run it among multiple machine.
-  </article>
-</section>
+			If you don't want the syncing features, you can turn off syncing, and simply put the database into a dropbox, icloud sync folder
+			to run it among multiple machine.
+		</article>
+	</section>
 
-<section class="row">
-  <article class="column">
-    <h2 class="title">Pricing</h2>
+	<section class="row">
+		<article class="column">
+			<h2 class="title">Pricing</h2>
 
-    <h3>Simple. $1/month</h3>
-    <p>
-      You can use it for free on a single device. When you want to use on more than one devices, you will need to pay us.
-      The fee you paid allow me to maitenance the backend.
-    </p>
-    <p>
-      <a class="button" href="">Join</a>
-    </p>
-  </article>
-</section>
+			<h3>Simple. $1/month</h3>
+			<p>
+				You can use it for free on a single device. When you want to use on more than one devices, you will need to pay us.
+				The fee you paid allow me to maitenance the backend.
+			</p>
+			<p>
+				<a class="button" href="">Join</a>
+			</p>
+		</article>
+	</section>
 
-<section class="row">
-  <article class="column">
-    <h2 class="title" id="faq">FAQ</h2>
+	<section class="row">
+		<article class="column">
+			<h2 class="title" id="faq">FAQ</h2>
+			<h4>How do I backup</h4>
+			<p>
+				You don't have to since the data is syncing back to our backend so we can show it on multiple devices.
+				If you really want to backup, simply backup your sqlite db in `~/.bima/bima.db`.
+			</p>
 
-    <h3>How do I backup</h3>
-    <p>
-      You don't have to since the data is syncing back to our backend so we can show it on multiple devices.
-      If you really want to backup, simply backup your sqlite db in `~/.bima/bima.db`.
-    </p>
+			<h4>Is my data secure</h4>
+			<p>
+				We used AES-GCM. For every otp secret, we generate a salt, we then encrypt this salt key using your own password.
+				We stored the encrypted salt into a SQL 
+			</p>
 
-    <h3>Is my data secure</h3>
-    <p>
-      We used AES-GCM. For every otp secret, we generate a salt, we then encrypt this salt key using your own password.
-      We stored the encrypted salt into a SQL 
-    </p>
+			<h4>Why would I use this over Authy</h4>
+			<p>
+				If you are happy with Authy, please continue to do so. However, what Bima offer is 100% open source. You know exactly what is going on
+				and you can even self-hosted it by changing syncing URL so it sync to your own server instead us.
+			</p>
 
-    <h3>Why would I use this over Authy</h3>
-    <p>
-      If you are happy with Authy, please continue to do so. However, what Bima offer is 100% open source. You know exactly what is going on
-      and you can even self-hosted it by changing syncing URL so it sync to your own server instead us.
-    </p>
-
-    <h3>I don't trust you</h3>
-    <p>
-      Fair enough. You can install the server and run it yourself.
-    </p>
-  </article>
-</section>
-
-
-
-<section class="row">
-  <article class="column">
-    <h2>Resources</h2>
-    <ul>
-      <li>
-        <a href="https://hexdocs.pm/phoenix/overview.html">Guides &amp; Docs</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix/blob/v1.4/CHANGELOG.md">v1.4 Changelog</a>
-      </li>
-    </ul>
-  </article>
-  <article class="column">
-    <h2>Help</h2>
-    <ul>
-      <li>
-        <a href="https://elixirforum.com/c/phoenix-forum">Forum</a>
-      </li>
-      <li>
-        <a href="https://webchat.freenode.net/?channels=elixir-lang">#elixir-lang on Freenode IRC</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">Twitter @elixirphoenix</a>
-      </li>
-    </ul>
-  </article>
-</section>
+			<h4>I don't trust you</h4>
+			<p>
+				Fair enough. You can install the server and run it yourself.
+			</p>
+		</article>
+	</section>
+</main>

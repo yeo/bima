@@ -12,25 +12,29 @@
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
   </head>
   <body>
-    <header>
+    <header class="navigation">
       <section class="container">
         <nav role="navigation">
-          <ul>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#download">Download</a></li>
-            <li><a href="#faq">FAQ</a></li>
+          <ul class="navigation-list float-right">
+            <li class="navigation-item"><a href="#pricing">Price</a></li>
+            <li class="navigation-item"><a href="#faq">FAQ</a></li>
+            <li class="navigation-item"><a class="button" href="#download">Download</a></li>
           </ul>
         </nav>
 
-        <a href="https://bima.getopty.com/" class="phx-logo">Bima</a>
+        <a href="https://bima.getopty.com/" class="navigation-title phx-logo">
+          <img src="<%= Routes.static_path(@conn, "/images/logo.png") %>" width="32" height="32"/>
+          <h1 class="title">Bima</h1>
+        </a>
       </section>
     </header>
 
-    <main role="main" class="container">
+    <main role="alert" class="container">
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
-      <%= render @view_module, @view_template, assigns %>
     </main>
+
+    <%= render @view_module, @view_template, assigns %>
 
     <footer class="footer"><section class="container"><p class="copyright">Build by <a href="https://betterdev.link" rel="noopener" target="_blank" title="Opty - DevOps consulting">Vinh</a>. © 2020 <a href="https://github.com/milligram/milligram#license" rel="noopener" target="_blank" title="MIT License">Opty LLC</a>.</p><nav class="nav"></nav></section></footer>
 
