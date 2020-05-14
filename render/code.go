@@ -195,7 +195,6 @@ func (c *ListCodeComponent) renderCode() {
 		if c.codeFilter != "" {
 			if !strings.Contains(token.Name, bima.AppModel.FilterText) &&
 				!strings.Contains(token.URL, bima.AppModel.FilterText) {
-				log.Debug().Str("Filter", bima.AppModel.FilterText).Str("Name", token.Name).Msg("Not match filter. Skip")
 				continue
 			}
 		}
