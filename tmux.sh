@@ -12,6 +12,10 @@ if [ "$sessionexists" = "" ]; then
 
   tmux new-window -t ${session}:1 -n 'docker'
   tmux send-keys -t 'docker' 'cd server/bima; docker-compose up' C-m
+
+  tmux select-window -t ${session}:1
+  tmux split-window -h -t ${session}:1
+  tmux send-keys -t ${session}:1 'cd server/bima; iex -S mix phx.server' C-m
 else
   tmux attach -t ${session}:0
 fi
