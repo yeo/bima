@@ -90,8 +90,11 @@ func (p *PasswordComponent) Save() error {
 		c := NewSecretKeyComponent(p.bima)
 		p.bima.Push("show_secret_key", c)
 	case EnterPasswordForm:
-		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
-		DrawMainUI(p.bima)
+		if e := p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text); e == nil {
+			DrawMainUI(p.bima)
+		} else {
+			dialog.ShowInformation("Err", "Wrong password", p.bima.UI.Window)
+		}
 	}
 
 	return nil

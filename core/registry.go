@@ -2,6 +2,7 @@ package bima
 
 import (
 	"crypto/rand"
+	"errors"
 	"os"
 	//"strconv"
 
@@ -120,7 +121,12 @@ func (r *Registry) SaveMasterPassword(password string) error {
 			r.CombineEncryptionKey()
 		}
 
-		return nil
+		if r.SecretKey != nil {
+			return nil
+		}
+
+		r.MasterPassword = nil
+		return errors.New("Invalid password")
 	}
 
 	// At this point, a password already in memory with all data, when save a new password here, we have to change and re-encrypt data
