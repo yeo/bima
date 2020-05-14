@@ -61,7 +61,7 @@ func New(a fyne.App, db *sql.DB) *Bima {
 			Window: w,
 		},
 		DB:       db,
-		Sync:     sync.New(registry.AppID, registry.SyncURL),
+		Sync:     sync.New(registry.AppID, AppVersion, registry.ApiURL),
 		AppModel: &AppModel{},
 	}
 }

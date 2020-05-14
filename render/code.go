@@ -47,7 +47,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 	nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
 	refreshLbl := canvas.NewText("", color.RGBA{57, 62, 70, 255})
 
-	otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
+	otpCode, _ := totp.GenerateCode(token.DecryptToken(bima.Registry.CombineEncryptionKey()), time.Now())
 	otpLbl := canvas.NewText(otpCode, color.RGBA{252, 81, 133, 255})
 	otpLbl.TextSize = 40
 
@@ -70,7 +70,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 			case <-ticker.C:
 				secondToRefresh -= 1
 				if secondToRefresh <= 0 {
-					otpCode, _ = totp.GenerateCode(token.DecryptToken(bima.Registry.MasterPassword), time.Now())
+					otpCode, _ = totp.GenerateCode(token.DecryptToken(bima.Registry.CombineEncryptionKey()), time.Now())
 					otpLbl.Text = otpCode
 					otpLbl.Refresh()
 					secondToRefresh = 30

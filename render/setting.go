@@ -26,7 +26,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	)
 
 	syncEntry := &widget.Entry{
-		Text: bima.Registry.SyncURL,
+		Text: bima.Registry.ApiURL,
 	}
 	backend := widget.NewVBox(
 		widget.NewLabel("Sync URL"),
@@ -44,12 +44,9 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	actionButtons := widget.NewHBox(
 		widget.NewButton("Save", func() {
 			bima.Registry.AppID = appIDEntry.Text
-			bima.Registry.SyncURL = syncEntry.Text
+			bima.Registry.ApiURL = syncEntry.Text
 			bima.Registry.Email = emailEntry.Text
-			dto.SavePrefs(map[string]string{
-				"email": bima.Registry.Email,
-			})
-
+			dto.UpdateConfig(dto.CfgEmail, bima.Registry.Email)
 			dialog.ShowInformation("Success", "Your information is saved.", bima.UI.Window)
 		}),
 		layout.NewSpacer(),
@@ -58,13 +55,21 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		}),
 	)
 
-	exportButton := widget.NewHBox(
+	exportButtons := widget.NewHBox(
 		widget.NewButton("Export", func() {
 			// TODO: FIX this to make it run on window and write to home
-			if err := exporter.Export(bima.Registry.MasterPassword, "/tmp/bima.csv"); err == nil {
+			if err := exporter.Export(bima.Registry.CombineEncryptionKey(), "/tmp/bima.csv"); err == nil {
 				dialog.ShowInformation("Success", "Your tokens are exported \nto /tmp/bima.csv", bima.UI.Window)
 			} else {
 				dialog.ShowInformation("Err", "Export fail", bima.UI.Window)
+			}
+		}),
+		widget.NewButton("Import", func() {
+			// TODO: FIX this to make it run on window and write to home
+			if err := exporter.Import(bima.Registry.CombineEncryptionKey(), "/tmp/bima.csv"); err == nil {
+				dialog.ShowInformation("Success", "Your tokens are imported", bima.UI.Window)
+			} else {
+				dialog.ShowInformation("Err", "Import fail", bima.UI.Window)
 			}
 		}),
 	)
@@ -82,7 +87,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	container.AddObject(backend)
 	container.AddObject(actionButtons)
 	container.AddObject(changePasswordButton)
-	container.AddObject(exportButton)
+	container.AddObject(exportButtons)
 	container.AddObject(layout.NewSpacer())
 
 	s := SettingComponent{

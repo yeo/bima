@@ -23,9 +23,15 @@ type Token struct {
 	decryptedToken string `json:"-"`
 }
 
-func (t *Token) DecryptToken(masterPassword string) string {
+func (t *Token) DecryptToken(key []byte) string {
 	if t.decryptedToken == "" {
-		t.decryptedToken = string(shield.Decrypt(t.Token, masterPassword))
+		code, err := shield.Decrypt(t.Token, key)
+
+		if err != nil {
+			panic(err)
+		}
+
+		t.decryptedToken = string(code)
 	}
 
 	return t.decryptedToken
@@ -130,7 +136,7 @@ func UpdateSecret(token *Token) error {
 	return err
 }
 
-func ChangePassword(oldPass, newPass string) error {
+func ChangePassword(oldPass, newPass []byte) error {
 	tx, _ := dbConn.Begin()
 	tokens, err := LoadTokens()
 
@@ -142,10 +148,13 @@ func ChangePassword(oldPass, newPass string) error {
 	for _, token := range tokens {
 		log.Info().Str("Token", token.ID).Msg("Reencrypt token")
 		otpSecret := token.DecryptToken(oldPass)
+		if err != nil {
+			panic(err)
+		}
 
 		token.Token = shield.Encrypt([]byte(otpSecret), newPass)
 
-		_, err := tx.Exec("UPDATE secret SET token = ?, version = version + 1 WHERE id=?", token.Token, token.ID)
+		_, err = tx.Exec("UPDATE secret SET token = ?, version = version + 1 WHERE id=?", token.Token, token.ID)
 		log.Err(err).Msg("change password")
 		if err != nil {
 			tx.Rollback()
@@ -171,7 +180,7 @@ func InsertOrReplaceSecret(token *Token) error {
 	return nil
 }
 
-func AddSecret(token *Token, masterPassword string) error {
+func AddSecret(token *Token, key []byte) error {
 	name := token.Name
 	url := token.URL
 	rawToken := token.RawToken
@@ -196,7 +205,7 @@ func AddSecret(token *Token, masterPassword string) error {
 		return fmt.Errorf("Error when generating uuid %+w", err)
 	}
 
-	encryptedToken := shield.Encrypt([]byte(rawToken), masterPassword)
+	encryptedToken := shield.Encrypt([]byte(rawToken), key)
 
 	_, err = stmt.Exec(u.String(), name, url, string(encryptedToken))
 	if err != nil {

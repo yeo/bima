@@ -1,7 +1,7 @@
 package render
 
 import (
-	"crypto/rand"
+	"encoding/base64"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/dialog"
@@ -20,6 +20,39 @@ const (
 	EnterPasswordForm  PasswordFormType = iota
 )
 
+type SecretKeyComponent struct {
+	bima      *bima.Bima
+	Container *fyne.Container
+}
+
+func (c *SecretKeyComponent) Remove() {
+	return
+}
+
+func (c *SecretKeyComponent) Render() fyne.CanvasObject {
+	return c.Container
+}
+
+func NewSecretKeyComponent(bima *bima.Bima) *SecretKeyComponent {
+	encoded := base64.StdEncoding.EncodeToString(bima.Registry.SecretKey)
+
+	s := SecretKeyComponent{
+		bima: bima,
+		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+			widget.NewLabel("Please save this key.\nBima combine this key together\nwith your master password \nto encrypt data.\n\nYou will need this key\nwhen re-setup your device from scrach.\n"),
+			&widget.Entry{
+				Text: encoded,
+			},
+			layout.NewSpacer()),
+	}
+
+	s.Container.AddObject(widget.NewButton("I saved the key securely!", func() {
+		DrawMainUI(s.bima)
+	}))
+
+	return &s
+}
+
 type PasswordComponent struct {
 	formType             PasswordFormType
 	bima                 *bima.Bima
@@ -37,18 +70,6 @@ func (p *PasswordComponent) Remove() {
 	return
 }
 
-func (p *PasswordComponent) generateEncryptionKey() []byte {
-	// Generate a 24 byte keys length
-	b := make([]byte, 24)
-	_, err := rand.Read(b)
-	if err != nil {
-		// TODO: Show error to end user
-		panic("Cannot generate key")
-	}
-
-	return b
-}
-
 func (p *PasswordComponent) Save() error {
 	if p.formType == ChangePasswordForm || p.formType == NewPasswordForm {
 		if (p.passwordEntry.Text == "") || (p.passwordEntry.Text != p.confirmPasswordEntry.Text) {
@@ -60,14 +81,14 @@ func (p *PasswordComponent) Save() error {
 	switch p.formType {
 	case ChangePasswordForm:
 		log.Debug().Str("password", p.passwordEntry.Text).Msg("Enter New Password")
-		p.generateEncryptionKey()
 		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
 		DrawMainUI(p.bima)
 	case NewPasswordForm:
 		// Onboard form or enter password form
 		log.Debug().Str("password", p.passwordEntry.Text).Msg("Change Password")
 		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
-		DrawMainUI(p.bima)
+		c := NewSecretKeyComponent(p.bima)
+		p.bima.Push("show_secret_key", c)
 	case EnterPasswordForm:
 		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
 		DrawMainUI(p.bima)
@@ -108,7 +129,7 @@ func NewPasswordComponent(bima *bima.Bima, formType PasswordFormType) *PasswordC
 	)
 
 	if formType == ChangePasswordForm || formType == NewPasswordForm {
-		passwordForm.Append(widget.NewLabel("Pick a password to encrypt your data.\nIf you forgot this password,\nyour data is lost forever.\nMake sure it is at least 16 character"))
+		passwordForm.Append(widget.NewLabel("Pick a password to encrypt your data.\nIf you forgot this password,\nyour data is lost forever."))
 	} else {
 		passwordForm.Append(widget.NewLabel("Enter password to decrypt your token\n"))
 	}

@@ -1,18 +1,17 @@
 package render
 
 import (
-	"os"
+	//"os"
 	//"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/yeo/bima/core"
 )
-
-func AddHeader(bima *bima.Bima) {
-}
 
 type HeaderComponent struct {
 	bima      *bima.Bima
@@ -62,24 +61,17 @@ func DrawMainUI(bima *bima.Bima) {
 func Render(bima *bima.Bima) {
 	h := NewHeaderComponent(bima)
 	bima.UI.Header = h.Render()
-	go bima.Sync.Watch()
+	//go bima.Sync.Watch()
 
 	// If never see onboard yet, we should show up onboard screen to enter email and setup password
-	if bima.Registry.HasSetPassword == "" {
+	if bima.Registry.HasOnboard() {
+		c := NewPasswordComponent(bima, EnterPasswordForm)
+		bima.Push("unlock", c)
+	} else {
+		// No secret key are created yet. We start onboard process so it also give user a chance to save this secret key
+		log.Debug().Msg("Start onboard")
 		c := NewPasswordComponent(bima, NewPasswordForm)
 		bima.Push("onboard", c)
-	} else {
-		// To avoid the annoying of password when debugging, we support set password via env.
-		if password := os.Getenv("BIMAPASS"); password != "" {
-			bima.Registry.MasterPassword = password
-		}
-
-		if bima.Registry.MasterPassword == "" {
-			c := NewPasswordComponent(bima, EnterPasswordForm)
-			bima.Push("unlock", c)
-		} else {
-			DrawMainUI(bima)
-		}
 	}
 
 	bima.UI.Window.Resize(fyne.NewSize(320, 640))

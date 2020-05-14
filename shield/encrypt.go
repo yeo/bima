@@ -12,13 +12,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func createHash(key string) string {
+func createHash(key []byte) string {
 	hasher := md5.New()
-	hasher.Write([]byte(key))
+	hasher.Write(key)
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func Encrypt(data []byte, passphrase string) []byte {
+func Encrypt(data []byte, passphrase []byte) []byte {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
@@ -32,22 +32,22 @@ func Encrypt(data []byte, passphrase string) []byte {
 	return ciphertext
 }
 
-func Decrypt(data []byte, passphrase string) []byte {
+func Decrypt(data []byte, passphrase []byte) ([]byte, error) {
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		log.Error().Str("data", string(data)).Msg("Cannot decrypt. Maybe password is changed?")
-		return nil
+		return nil, err
 	}
-	return plaintext
+	return plaintext, nil
 }

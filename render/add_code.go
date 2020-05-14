@@ -74,7 +74,7 @@ func DrawNewCode(bima *bima.Bima) *widget.Button {
 			return
 		}
 
-		if dto.AddSecret(token, bima.Registry.MasterPassword) == nil {
+		if dto.AddSecret(token, bima.Registry.CombineEncryptionKey()) == nil {
 			if popup != nil {
 				popup.Hide()
 				popup = nil

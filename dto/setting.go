@@ -7,33 +7,51 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	CfgAppId     = "app_id"
+	CfgSecretKey = "secret_key"
+	CfgApiURL    = "api_url"
+	CfgEmail     = "email"
+)
+
 type Setting struct {
 	Name  string
 	Value string
-	Scope string
 }
 
-func LoadConfigsByScope(scope string) (map[string]*Setting, error) {
-	configs := make(map[string]*Setting)
+type SettingMap struct {
+	AppID     string
+	SecretKey string
 
-	stmt, err := dbConn.Prepare("select name, value, scope from config where scope = ?")
+	ApiURL string
+	Email  string
+}
+
+func LoadConfigs() (*SettingMap, error) {
+	configs := SettingMap{}
+
+	stmt, err := dbConn.Prepare("select name, value from config")
 	if err != nil {
 		return nil, fmt.Errorf("Cannot prepare statement: %+w", err)
 	}
 
-	rows, err := stmt.Query(scope)
+	rows, err := stmt.Query()
 	if err != nil {
 		return nil, fmt.Errorf("Cannot prepare statement: %+w", err)
 	}
 	defer stmt.Close()
 
 	for rows.Next() {
-		var name, value, scope string
-		err = rows.Scan(&name, &value, &scope)
-		configs[name] = &Setting{
-			Name:  name,
-			Value: value,
-			Scope: scope,
+		var name, value string
+		err = rows.Scan(&name, &value)
+
+		switch name {
+		case CfgAppId:
+			configs.AppID = value
+		case CfgSecretKey:
+			configs.SecretKey = value
+		case CfgApiURL:
+			configs.ApiURL = value
 		}
 
 		if err != nil {
@@ -41,22 +59,10 @@ func LoadConfigsByScope(scope string) (map[string]*Setting, error) {
 		}
 	}
 
-	return configs, nil
+	return &configs, nil
 }
 
-func LoadPrefs() (map[string]*Setting, error) {
-	return LoadConfigsByScope("prefs")
-}
-
-func SavePrefs(p map[string]string) error {
-	for k, v := range p {
-		UpdateConfig(k, v, "prefs")
-	}
-
-	return nil
-}
-
-func GetConfig(configName string, configScope string) (*Setting, error) {
+func GetConfig(configName string) (*Setting, error) {
 	stmt, err := dbConn.Prepare("select name, value, scope from config where name = ? and scope = ?")
 
 	if err != nil {
@@ -65,8 +71,8 @@ func GetConfig(configName string, configScope string) (*Setting, error) {
 
 	defer stmt.Close()
 
-	var name, value, scope string
-	err = stmt.QueryRow(configName, configScope).Scan(&name, &value, &scope)
+	var name, value string
+	err = stmt.QueryRow(configName).Scan(&name, &value)
 
 	if err != nil {
 		return nil, fmt.Errorf("Cannot query data: %+w", err)
@@ -79,16 +85,15 @@ func GetConfig(configName string, configScope string) (*Setting, error) {
 		return &Setting{
 			Name:  name,
 			Value: value,
-			Scope: scope,
 		}, nil
 	default:
 		return nil, fmt.Errorf("Error when querying database %+w", err)
 	}
 }
 
-func UpdateConfig(configName, configValue, configScope string) error {
+func UpdateConfig(name, value string) error {
 	if dbConn == nil {
-		fmt.Println("DB is no tinit")
+		fmt.Println("DB is not init")
 		return fmt.Errorf("DB is not init")
 	}
 
@@ -98,13 +103,21 @@ func UpdateConfig(configName, configValue, configScope string) error {
 		return fmt.Errorf("Cannot init transaction %+w", err)
 	}
 
-	stmt, err := tx.Prepare("INSERT OR REPLACE INTO config(name, value, scope) VALUES(?, ?, ?)")
-	_, err = stmt.Exec(configName, configValue, configScope)
+	stmt, err := tx.Prepare("INSERT OR REPLACE INTO config(name, value) VALUES(?, ?)")
+	_, err = stmt.Exec(name, value)
 
 	if err != nil {
 		return fmt.Errorf("Cannot commit %+w", err)
 	}
 	tx.Commit()
+
+	return nil
+}
+
+func UpdateConfigMap(p map[string]string) error {
+	for k, v := range p {
+		UpdateConfig(k, v)
+	}
 
 	return nil
 }
