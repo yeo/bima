@@ -25,5 +25,9 @@ defmodule BimaWeb.Router do
     pipe_through :api
 
     post "/sync", Api.SyncController, :sync
+    post "/app", Api.AppController, :create
+
+    post "/blob", Api.BlobController, :create
+    get "/blob/:code", Api.BlobController, :show
   end
 end
