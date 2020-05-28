@@ -15,5 +15,6 @@ defmodule Bima.Blob do
     blob
     |> cast(attrs, [:code, :payload, :ttl])
     |> validate_required([:code, :payload, :ttl])
+    |> unique_constraint(:code)
   end
 end
