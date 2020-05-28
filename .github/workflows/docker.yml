@@ -1,0 +1,32 @@
+name: Elixir Server
+
+on:
+  push:
+
+env:
+   GITHUB_SHA: ${{ github.sha }}
+	 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+		- name: Docker login
+			run: |
+				echo $GITHUB_TOKEN | docker login docker.pkg.github.com -u v9n --password-stdin
+
+    - name: Build docker image
+      run: |
+				cd server/bima
+        docker build -t docker.pkg.github.com/yeo/bima:"$GITHUB_SHA" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" .
+				docker tag IMAGE_ID docker.pkg.github.com/yeo/bima/IMAGE_NAME:latest
+
+    - name: Publish docker image
+      run: |
+        docker push docker.pkg.github.com/yeo/bima:$GITHUB_SHA
+
