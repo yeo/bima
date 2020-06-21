@@ -6,71 +6,98 @@ defmodule BimaWeb.Api.SyncController do
 
   alias Plug.Conn
 
-  def sync(conn, %{"current" => client_tokens, "removed" => request_removed_tokens}) do
+  def sync(conn, %{"current" => client_submit_tokens, "removed" => request_removed_tokens}) do
     [app_id | _ ] = Conn.get_req_header(conn, "appid")
-    tokens = Repo.all(from u in Token, where: u.app_id == ^app_id)
-    sync_add_or_update(tokens, client_tokens, app_id)
-    removed_tokens = sync_remove(client_tokens, request_removed_tokens)
 
-    tokens = Repo.all(from u in Token, where: u.app_id == ^app_id and is_nil(u.deleted_at))
-    render(conn, "sync.json", tokens: tokens, removed_tokens: removed_tokens, added: added_tokens)
+    # Apply the removed token to our db
+    # This need to be done first to avoid client revert each others
+    removed_tokens = sync_remove(client_submit_tokens, request_removed_tokens)
+
+    # Refresh state to see what we have on our db right now
+    current_tokens_map = token_list_as_map(app_id)
+
+    conn
+    |> render("sync.json",
+      removed: removed_tokens,
+      added:   sync_add(current_tokens_map, client_submit_tokens, app_id),
+      changed: sync_update(current_tokens_map, client_submit_tokens, app_id))
   end
 
-
-  defp sync_add_or_update(exist_tokens, client_tokens, app_id) do
-    Enum.each(client_tokens, fn x -> sync_token(exist_tokens, x, app_id) end)
+  # Return a map of tokens where the map key is token id
+  #
+  # This helps speed up token existed check to O(1)
+  defp token_list_as_map(app_id) do
+    Repo.all(from u in Token, where: u.app_id == ^app_id and is_nil(u.deleted_at))
+    |> Map.new(fn token -> {token.id, token} end)
   end
 
-  defp sync_add(exist_tokens) do
+  # Given two list of:
+  # - current_client_tokens: the state of local db from client site
+  # - current_tokens: the state of remote db from server side
+  #
+  # This does 2 things:
+  # - write the token that existed on client but not on server
+  # return list of token we need to add to client: these are tokens existed on server but not from client
+  defp sync_update(exist_tokens_map, client_tokens, app_id) do
+    client_tokens
+    |> Enum.filter(&(Map.has_key?(exist_tokens_map, &1["id"])))
+    |> Enum.map(fn new_token ->
+      # Client version is higher than server, which mean it's changed on client side
+      # TODO: handle case of same version mean 2 client has update, we can also check updated time
+      # client version is higher than server state, so we update server state. In this case, no need to return to client, it has the lastest state
+      exist_token = Map.get(exist_tokens_map, new_token["id"])
+      cond do
+        exist_token.version < new_token["version"] ->
+          changeset = exist_token
+          |> Ecto.Changeset.change(name: new_token["name"], url: new_token["url"], version: new_token["version"])
+          case Repo.update(changeset) do
+            {:ok, token} -> %{token | token: nil}
+          end
+
+        exist_token.version > new_token["version"] ->
+          %{exist_token | token: nil}
+
+        true ->
+          # TODO: handle this. do nothing for now
+          nil
+      end
+    end)
+    |> Enum.filter(&(&1))
   end
 
-  defp sync_update(exist_tokens) do
+  defp sync_add(exist_tokens_map, client_tokens, app_id) do
+    client_tokens
+    |> Enum.filter(fn client_submited_token -> !Map.get(exist_tokens_map, client_submited_token["id"]) end)
+    |> Enum.map(fn new_token ->
+      # These are new token that client submit and does't existed in our db so we add them in
+      changeset = Token.changeset(%Token{app_id: app_id}, new_token)
+      case Repo.insert(changeset) do
+        {:ok, token} -> token
+      end
+    end)
+    |> Enum.filter(fn t -> t end)
   end
 
-  defp added_tokens() do
-  end
-
+  # Given a list of token from local db of a client, and a list of removed token
+  # Return a list of token that is removed, either from client request or removed by other clients that has same app id
   defp sync_remove(current_client_tokens, request_removed_tokens) do
     removed_tokens = Enum.map(request_removed_tokens, fn request_token ->
       token = Repo.get(Token, request_token["id"])
       if token do
         r = Ecto.Changeset.cast(token, %{deleted_at: DateTime.utc_now(), version: token.version + 1}, [:deleted_at, :version])
-        |> Repo.update!()
-        IO.inspect r
+            |> Repo.update!()
 
-        %{id: token.id, version: token.version}
+            %{id: token.id, version: token.version}
       else
         %{id: request_token["id"], version: -1}
       end
     end)
 
+    # Let's say client A and B share same app ID.
+    # client A deleted T1 and stay off line for a while
+    # During that, client B deleted T2.
+    # Later on, client A come up we will need to tell client A that T2 is deleted too
     no_longer_exist_token = Repo.all(from u in Token, select: [:id, :version], where: not(is_nil(u.deleted_at)) and u.id in ^Enum.map(current_client_tokens, &(&1["id"])))
     removed_tokens ++ Enum.map(no_longer_exist_token, &(%{id: &1.id, version: &1.version}))
-  end
-
-  defp sync_token(exist_tokens, new_token, app_id) do
-    exist_token = Enum.at(Enum.filter(exist_tokens, fn x -> new_token["id"] == x.id end), 0)
-
-    if exist_token == nil do
-        # These are new token that client submit and does't existed in our db so we add them in
-        changeset = Token.changeset(%Token{app_id: app_id}, new_token)
-        Repo.insert(changeset)
-    else
-        IO.puts "exist token"
-        IO.inspect exist_token
-        # Client version is higher than server, which mean it's changed on client side
-        # TODO: handle case of same version mean 2 client has update, we can also check updated time
-        if exist_token.deleted_at do
-          IO.puts "Token #{exist_token.id} is request but it's mark for deletion at #{exist_token.deleted_at}"
-        else
-          if new_token["version"] > exist_token.version do
-            changeset = Ecto.Changeset.change(exist_token,
-              name: new_token["name"],
-              url: new_token["url"],
-              version: new_token["version"])
-            Repo.update changeset
-          end
-        end
-    end
   end
 end
