@@ -5,6 +5,7 @@ package sync
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -213,11 +214,37 @@ func (s *Sync) ExchangeBlob(content string) (string, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	log.Debug().Str("body", string(body)).Msg("Blob Response")
-	var response BlobResponse
-	err = json.Unmarshal(body, &response)
 
-	if resp.StatusCode == 200 && err == nil {
-		return response.Code, nil
+	if resp.StatusCode == 200 {
+		var response BlobResponse
+		err = json.Unmarshal(body, &response)
+		if err == nil {
+			return response.Code, nil
+		}
+	}
+
+	return "", err
+}
+
+func (s *Sync) GetBlob(code string) (string, error) {
+	req, err := s.buildRequest("GET", "blob/"+code, nil)
+	resp, err := s.Client.Do(req)
+
+	if err != nil {
+		log.Printf("Cannot create blob. Retry later")
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	log.Debug().Str("body", string(body)).Msg("Blob Response")
+
+	if resp.StatusCode == 200 {
+		var response BlobResponse
+		err = json.Unmarshal(body, &response)
+		return response.Payload, nil
+	} else {
+		return "", errors.New("Invalid code")
 	}
 
 	return "", err

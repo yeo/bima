@@ -84,11 +84,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	)
 
 	newDeviceButton := widget.NewHBox(
-		widget.NewButton("Show Setup Kit", func() {
-			c := NewSetupKitComponent(bima)
-			bima.Push("changepassword", c)
-		}),
-		widget.NewButton("Get Quick Setup Code", func() {
+		widget.NewButton("Generate Setup Code", func() {
 			s := dialog.NewProgressInfinite("Getting quick setup code", "...", bima.UI.Window)
 			go func() {
 				// Request server, on finish
@@ -106,12 +102,17 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 							code2 += " "
 						}
 					}
-					dialog.ShowInformation("Setup Code", code2, bima.UI.Window)
+					dialog.ShowInformation("Setup Code (valid with in 10mins)", code2, bima.UI.Window)
 				} else {
 					dialog.ShowError(err, bima.UI.Window)
 				}
 			}()
 			s.Show()
+		}),
+
+		widget.NewButton("Show Emergency Kit", func() {
+			c := NewSetupKitComponent(bima)
+			bima.Push("changepassword", c)
 		}),
 	)
 

@@ -70,7 +70,8 @@ func Render(bima *bima.Bima) {
 	} else {
 		// No secret key are created yet. We start onboard process so it also give user a chance to save this secret key
 		log.Debug().Msg("Start onboard")
-		c := NewPasswordComponent(bima, NewPasswordForm)
+		//c := NewPasswordComponent(bima, NewPasswordForm)
+		c := NewOnboardComponent(bima)
 		bima.Push("onboard", c)
 	}
 
