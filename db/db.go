@@ -21,7 +21,7 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func Setup() (*sql.DB, error) {
+func Setup(dbFile string) (*sql.DB, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
@@ -30,7 +30,7 @@ func Setup() (*sql.DB, error) {
 	dbDir := user.HomeDir + "/.bima"
 	os.MkdirAll(dbDir, os.ModePerm)
 
-	dbPath := dbDir + "/bima.db"
+	dbPath := dbDir + "/" + dbFile
 	log.Info().Str("dbpath", dbPath).Msg("Load db file")
 
 	needSetup := !fileExists(dbPath)
