@@ -8,6 +8,7 @@ defmodule BimaWeb.Api.SyncController do
 
   def sync(conn, %{"current" => client_submit_tokens, "removed" => request_removed_tokens}) do
     [app_id | _ ] = Conn.get_req_header(conn, "appid")
+    IO.inspect app_id, label: 'app_id'
 
     # Apply the removed token to our db
     # This need to be done first to avoid client revert each others
@@ -28,6 +29,11 @@ defmodule BimaWeb.Api.SyncController do
   # This helps speed up token existed check to O(1)
   defp token_list_as_map(app_id) do
     Repo.all(from u in Token, where: u.app_id == ^app_id and is_nil(u.deleted_at))
+    |> Map.new(fn token -> {token.id, token} end)
+  end
+
+  defp deleted_token_list_as_map(app_id) do
+    Repo.all(from u in Token, where: u.app_id == ^app_id and not is_nil(u.deleted_at))
     |> Map.new(fn token -> {token.id, token} end)
   end
 
@@ -65,17 +71,27 @@ defmodule BimaWeb.Api.SyncController do
     |> Enum.filter(&(&1))
   end
 
+  # Do 2 things:
+  # - Add tokens that don't exist in our database
+  # - Return token that exist in our db but not in client request
   defp sync_add(exist_tokens_map, client_tokens, app_id) do
+    removed_tokens = deleted_token_list_as_map(app_id)
+
     client_tokens
     |> Enum.filter(fn client_submited_token -> !Map.get(exist_tokens_map, client_submited_token["id"]) end)
-    |> Enum.map(fn new_token ->
+    |> Enum.each(fn new_token ->
       # These are new token that client submit and does't existed in our db so we add them in
-      changeset = Token.changeset(%Token{app_id: app_id}, new_token)
-      case Repo.insert(changeset) do
-        {:ok, token} -> token
+      # but we don't need to return them
+      check_removed_token = Map.get(removed_tokens, new_token["id"])
+      if !check_removed_token do
+        changeset = Token.changeset(%Token{app_id: app_id}, new_token)
+        case Repo.insert(changeset) do
+          {:ok, token} -> token
+        end
       end
     end)
-    |> Enum.filter(fn t -> t end)
+
+    Enum.map(exist_tokens_map, fn({id, existed_token}) -> existed_token end)
   end
 
   # Given a list of token from local db of a client, and a list of removed token
