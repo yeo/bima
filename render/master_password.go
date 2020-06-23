@@ -1,8 +1,6 @@
 package render
 
 import (
-	"encoding/base64"
-
 	"fyne.io/fyne"
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
@@ -34,14 +32,13 @@ func (c *SecretKeyComponent) Render() fyne.CanvasObject {
 }
 
 func NewSecretKeyComponent(bima *bima.Bima) *SecretKeyComponent {
-	encoded := base64.StdEncoding.EncodeToString(bima.Registry.SecretKey)
-
 	s := SecretKeyComponent{
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-			widget.NewLabel("Please save this key.\nBima combine this key together\nwith your master password \nto encrypt data.\n\nYou will need this key\nwhen re-setup your device from scrach.\n"),
+			widget.NewLabel("Please save this key.\nBima combines this key together\nwith your master password\nto encrypt data.\nBima server has no access to this key and cannot help you to recover it."),
 			&widget.Entry{
-				Text: encoded,
+				Text:      bima.Registry.GetSetupKit(),
+				MultiLine: true,
 			},
 			layout.NewSpacer()),
 	}

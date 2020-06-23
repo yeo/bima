@@ -2,7 +2,9 @@ package bima
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"os"
 	//"strconv"
 
@@ -164,4 +166,9 @@ func (r *Registry) SaveMasterPassword(password string) error {
 	}
 
 	return nil
+}
+
+func (r *Registry) GetSetupKit() string {
+	secretKeyEncoded := base64.StdEncoding.EncodeToString(r.SecretKey)
+	return fmt.Sprintf("{\n\"appID\":\n\"%s\",\n\"secretKey\":\n\"%s\"\n}", r.AppID, secretKeyEncoded)
 }
