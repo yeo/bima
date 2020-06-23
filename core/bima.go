@@ -2,13 +2,14 @@ package bima
 
 import (
 	"database/sql"
-	"os"
+	//"os"
 
 	"fyne.io/fyne"
 	//"fyne.io/fyne/widget"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
+	"github.com/yeo/bima/db"
 	"github.com/yeo/bima/dto"
 	"github.com/yeo/bima/sync"
 )
@@ -51,17 +52,31 @@ type Bima struct {
 	AppModel *AppModel
 }
 
-func New(a fyne.App, db *sql.DB) *Bima {
-	w := a.NewWindow("Bima " + AppVersion)
+func New(a fyne.App) *Bima {
 	registry := NewRegistry()
+	InitLog(registry)
+	db, err := InitDB(registry)
 
+	if err != nil {
+		log.Fatal().Err(err).Msg("Cannot setup db")
+	}
+
+	registry.LoadConfigsFromDB()
+
+	title := "Bima " + AppVersion
+	if registry.IsDebug() {
+		title = "Bima Debug " + AppVersion
+	}
+	w := a.NewWindow(title)
+
+	syncer := sync.New(registry.AppID, AppVersion, registry.ApiURL)
 	return &Bima{
 		Registry: registry,
 		UI: &UI{
 			Window: w,
 		},
 		DB:       db,
-		Sync:     sync.New(registry.AppID, AppVersion, registry.ApiURL),
+		Sync:     syncer,
 		AppModel: &AppModel{},
 	}
 }
@@ -84,10 +99,20 @@ func (b *Bima) Cleanup() {
 	b.Sync.Done <- true
 }
 
-func InitLog() {
+func InitLog(r *Registry) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if debugFlag := os.Getenv("DEBUG"); debugFlag == "1" {
+	if r.IsDebug() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
+}
+
+func InitDB(r *Registry) (*sql.DB, error) {
+	dbCon, err := db.Setup(r.dbFile)
+	dto.SetDB(dbCon)
+	if err != nil {
+		return nil, err
+	}
+
+	return dbCon, nil
 }

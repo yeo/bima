@@ -26,12 +26,21 @@ type Registry struct {
 
 	ApiURL string
 	Email  string
+
+	dbFile string
+	debug  bool
 }
 
 func NewRegistry() *Registry {
-	configs, err := dto.LoadConfigs()
 	r := Registry{
 		ApiURL: "http://bima.getopty.com/api",
+		debug:  false,
+		dbFile: "bima.db",
+	}
+
+	if debugFlag := os.Getenv("DEBUG"); debugFlag == "1" {
+		r.debug = true
+		r.dbFile = "dev.db"
 	}
 
 	// To avoid the annoying of password when debugging, we support set password via env.
@@ -39,9 +48,17 @@ func NewRegistry() *Registry {
 		r.MasterPassword = []byte(password)
 	}
 
+	return &r
+}
+
+func (r *Registry) LoadConfigsFromDB() error {
+	configs, err := dto.LoadConfigs()
+
 	if err != nil {
 		// TODO: Show ui error
 		log.Error().Msg("Error when loading config")
+
+		return err
 	}
 
 	if configs.AppID != "" {
@@ -69,7 +86,11 @@ func NewRegistry() *Registry {
 		r.ApiURL = url
 	}
 
-	return &r
+	return nil
+}
+
+func (r *Registry) IsDebug() bool {
+	return r.debug
 }
 
 func (r *Registry) Save() error {
