@@ -136,6 +136,12 @@ func UpdateSecret(token *Token) error {
 	return err
 }
 
+func UpdateSecretNoVersionBump(token *Token) error {
+	_, err := dbConn.Exec("UPDATE secret SET name = ?, url = ? WHERE id=?", token.Name, token.URL, token.ID)
+
+	return err
+}
+
 func ChangePassword(oldPass, newPass []byte) error {
 	tx, _ := dbConn.Begin()
 	tokens, err := LoadTokens()

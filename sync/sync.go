@@ -5,9 +5,9 @@ package sync
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -15,15 +15,34 @@ import (
 	"github.com/yeo/bima/dto"
 )
 
+type Me struct {
+	Email string
+}
+
+type LockBox interface {
+	Encrypt(string) string
+}
+
 type Sync struct {
-	Client  *http.Client
-	Done    chan bool
-	AppID   string
-	syncURL string
+	Client     *http.Client
+	Me         *Me
+	Done       chan bool
+	AppID      string
+	AppVersion string
+	apiURL     string
+	LockBox    LockBox
+}
+
+type CompareResponse struct {
+	AppVersion  string `json:"app_version"`
+	DataVersion int    `json:"data_version"`
+
+	RequireDataSync  bool `json:"require_data_sync"`
+	RequireAppUpdate bool `json:"require_app_update"`
 }
 
 type SyncResponse struct {
-	Current []*dto.Token `json:"current"`
+	Added   []*dto.Token `json:"added"`
 	Removed []*dto.Token `json:"removed"`
 	Changed []*dto.Token `json:"changed"`
 }
@@ -33,18 +52,15 @@ type SyncRequest struct {
 	Removed []*dto.Token `json:"removed"`
 }
 
-func New(appID string, syncURL string) *Sync {
-	if url := os.Getenv("SYNC_URL"); url != "" {
-		syncURL = url
-	}
-
+func New(appID, appVersion, apiURL string) *Sync {
 	return &Sync{
 		Client: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		Done:    make(chan bool),
-		AppID:   appID,
-		syncURL: syncURL,
+		Done:       make(chan bool),
+		AppID:      appID,
+		apiURL:     apiURL,
+		AppVersion: appVersion,
 	}
 }
 
@@ -57,12 +73,50 @@ func (s *Sync) Watch() {
 		case <-s.Done:
 			return
 		case <-ticker.C:
+			//log.Debug().Msg("Disable sync for now")
 			s.Do()
 		}
 	}
 }
 
-// Do sends a sync request to server and update local db accordingly
+func (s *Sync) buildRequest(method, path string, payload io.Reader) (*http.Request, error) {
+	// Check trailing slash
+	url := s.apiURL + "/" + path
+	req, err := http.NewRequest(method, url, payload)
+	log.Debug().Str("url", url).Msg("Build Request")
+	req.Header.Set("User-Agent", "bima")
+	req.Header.Set("AppID", s.AppID)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("App-Version", s.AppVersion)
+	//req.Header.Set("Data-Version", "100")
+	return req, err
+}
+
+// Compare send a light request(small payload) to server to see if we need to do a sync
+func (s *Sync) Compare() *CompareResponse {
+	req, err := s.buildRequest("POST", "compare", nil)
+	if err != nil {
+		// TODO: log error
+		return nil
+	}
+
+	resp, err := s.Client.Do(req)
+	if err != nil {
+		log.Printf("Cannot post to backend. Retry later")
+		return nil
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	log.Debug().Str("body", string(body)).Msg("Sync Response")
+	var diff CompareResponse
+	err = json.Unmarshal(body, &diff)
+
+	return &diff
+}
+
+// Currently this use http sync. but we should switch to websocket
 func (s *Sync) Do() {
 	// Send a POST request with all of our token to backend
 	// Backend return a diff of action to let us know what to do.
@@ -93,10 +147,8 @@ func (s *Sync) Do() {
 		return
 	}
 
-	req, err := http.NewRequest("POST", s.syncURL, bytes.NewBuffer(payload))
-	req.Header.Set("User-Agent", "bima")
-	req.Header.Set("AppID", s.AppID)
-	req.Header.Set("Content-Type", "application/json")
+	log.Print(string(payload))
+	req, err := s.buildRequest("POST", "sync", bytes.NewBuffer(payload))
 
 	resp, err := s.Client.Do(req)
 
@@ -113,9 +165,15 @@ func (s *Sync) Do() {
 	err = json.Unmarshal(body, &diff)
 
 	if resp.StatusCode == 200 {
-		if diff.Changed != nil {
-			for _, t := range diff.Current {
+		if diff.Added != nil {
+			for _, t := range diff.Added {
 				dto.InsertOrReplaceSecret(t)
+			}
+		}
+
+		if diff.Changed != nil {
+			for _, t := range diff.Changed {
+				dto.UpdateSecretNoVersionBump(t)
 			}
 		}
 
