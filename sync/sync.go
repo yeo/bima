@@ -52,6 +52,15 @@ type SyncRequest struct {
 	Removed []*dto.Token `json:"removed"`
 }
 
+type BlobRequest struct {
+	Payload string `json:"payload"`
+}
+
+type BlobResponse struct {
+	Code    string `json:"code"`
+	Payload string `json:"payload"`
+}
+
 func New(appID, appVersion, apiURL string) *Sync {
 	return &Sync{
 		Client: &http.Client{
@@ -183,4 +192,33 @@ func (s *Sync) Do() {
 			}
 		}
 	}
+}
+
+// Currently this use http sync. but we should switch to websocket
+func (s *Sync) ExchangeBlob(content string) (string, error) {
+	requestRaw := BlobRequest{
+		Payload: content,
+	}
+
+	payload, err := json.Marshal(requestRaw)
+	req, err := s.buildRequest("POST", "blob", bytes.NewBuffer(payload))
+	resp, err := s.Client.Do(req)
+
+	if err != nil {
+		log.Printf("Cannot create blob. Retry later")
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	log.Debug().Str("body", string(body)).Msg("Blob Response")
+	var response BlobResponse
+	err = json.Unmarshal(body, &response)
+
+	if resp.StatusCode == 200 && err == nil {
+		return response.Code, nil
+	}
+
+	return "", err
 }

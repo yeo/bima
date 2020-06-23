@@ -61,7 +61,7 @@ func DrawMainUI(bima *bima.Bima) {
 func Render(bima *bima.Bima) {
 	h := NewHeaderComponent(bima)
 	bima.UI.Header = h.Render()
-	//go bima.Sync.Watch()
+	go bima.Sync.Watch()
 
 	// If never see onboard yet, we should show up onboard screen to enter email and setup password
 	if bima.Registry.HasOnboard() {
