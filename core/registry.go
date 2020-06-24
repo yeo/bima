@@ -96,6 +96,12 @@ func (r *Registry) IsDebug() bool {
 }
 
 func (r *Registry) Save() error {
+	// Re-encrypt our secret key
+	dto.UpdateConfig(dto.CfgAppId, r.AppID)
+	r.encryptedSecretKey = shield.Encrypt(r.SecretKey, r.MasterPassword)
+	dto.UpdateConfig(dto.CfgSecretKey, string(r.encryptedSecretKey))
+	r.CombineEncryptionKey()
+
 	return nil
 }
 
@@ -169,6 +175,11 @@ func (r *Registry) SaveMasterPassword(password string) error {
 }
 
 func (r *Registry) GetSetupKit() string {
-	secretKeyEncoded := base64.StdEncoding.EncodeToString(r.SecretKey)
-	return fmt.Sprintf("{\n\"appID\":\n\"%s\",\n\"secretKey\":\n\"%s\"\n}", r.AppID, secretKeyEncoded)
+	encryptedSecretKey := shield.Encrypt(r.SecretKey, r.MasterPassword)
+	encryptedAppID := shield.Encrypt([]byte(r.AppID), r.MasterPassword)
+
+	payload := fmt.Sprintf("{\n\"appID\":\n\"%s\",\n\"secretKey\":\n\"%s\"\n}",
+		base64.StdEncoding.EncodeToString(encryptedAppID), base64.StdEncoding.EncodeToString(encryptedSecretKey))
+
+	return payload
 }
