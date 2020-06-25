@@ -39,6 +39,7 @@ func NewSecretKeyComponent(bima *bima.Bima) *SecretKeyComponent {
 			&widget.Entry{
 				Text:      bima.Registry.GetSetupKit(),
 				MultiLine: true,
+				Wrapping:  fyne.TextWrapBreak,
 			},
 			layout.NewSpacer()),
 	}

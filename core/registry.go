@@ -75,7 +75,6 @@ func (r *Registry) LoadConfigsFromDB() error {
 		u, _ := uuid.NewV4()
 		log.Debug().Str("appid", u.String()).Msg("Generated appid")
 		r.AppID = u.String()
-		dto.UpdateConfig(dto.CfgAppId, r.AppID)
 	}
 
 	// The URL in db has highest priority

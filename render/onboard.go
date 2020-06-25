@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	//"fmt"
+	"image/color"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
@@ -14,6 +16,11 @@ import (
 
 	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/shield"
+)
+
+const (
+	SetupTypeQuickCode = "QuickCode"
+	SetupTypeSetupKit  = "SetupKit"
 )
 
 type SetupKit struct {
@@ -38,25 +45,34 @@ func NewOnboardComponent(bima *bima.Bima) *OnboardComponent {
 	p := OnboardComponent{
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-			layout.NewSpacer(),
-
 			widget.NewVBox(
+				layout.NewSpacer(),
 				widget.NewButton("Starting from scratch", func() {
 					c := NewPasswordComponent(bima, NewPasswordForm)
 					bima.Push("onboard", c)
 				}),
+				&widget.Label{
+					Text:     "Use this when you do not have any existed installation to sync data from",
+					Wrapping: fyne.TextWrapWord,
+				},
 				layout.NewSpacer(),
-				widget.NewButton("Use Setup Code from other device", func() {
-					c := NewCodeSetupComponent(bima)
+				canvas.NewLine(color.Black),
+				layout.NewSpacer(),
+				&widget.Label{
+					Text:     "If you have data on other devices, you can restore from other app using Setup Code generate from that app. Of if you no longer has access to any of app installation, you can use restore from Setup Kit, which Bima prompted you to save it.",
+					Wrapping: fyne.TextWrapWord,
+				},
+
+				widget.NewButton("Use other Bima app", func() {
+					c := NewCodeSetupComponent(bima, SetupTypeQuickCode)
 					bima.Push("setup/code", c)
 				}),
+				widget.NewButton("Restore with Setup Kit", func() {
+					c := NewCodeSetupComponent(bima, SetupTypeSetupKit)
+					bima.Push("setup/kit", c)
+				}),
 				layout.NewSpacer(),
-				widget.NewButton("Or Restore From SetupKit", func() {
-					c := NewCodeSetupComponent(bima)
-					bima.Push("setup/code", c)
-				})),
-
-			layout.NewSpacer(),
+			),
 		),
 	}
 
@@ -77,28 +93,41 @@ func (p *CodeSetupComponent) Remove() {
 	return
 }
 
-func NewCodeSetupComponent(bima *bima.Bima) *CodeSetupComponent {
+func NewCodeSetupComponent(bima *bima.Bima, setupType string) *CodeSetupComponent {
 	codeEntry := widget.NewEntry()
 	masterPassword := widget.NewEntry()
+
+	label := "On the other app, go to\nSetting > Generate Setup Code"
+	if setupType == SetupTypeSetupKit {
+		label = "Paste your setup kit if you have.\nIt can also found in Setting > Show Setup Kit"
+	}
 
 	p := CodeSetupComponent{
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
 			layout.NewSpacer(),
 			widget.NewVBox(
-				widget.NewLabel("On the other app, go to\nSetting > Generate Setup Code\n"),
+				widget.NewLabel(label),
 				codeEntry,
 				layout.NewSpacer(),
-				widget.NewLabel("Enter the same master password that you used on the other app"),
+				widget.NewLabel("Enter your master password"),
 				masterPassword,
 				widget.NewButton("Next", func() {
 					bima.Registry.MasterPassword = []byte(masterPassword.Text)
 
-					s := dialog.NewProgressInfinite("Getting quick setup code", "...", bima.UI.Window)
+					s := dialog.NewProgressInfinite("Syncing data", "...", bima.UI.Window)
 					s.Show()
 					go func() {
 						// Load code
-						encryptedBody, err := bima.Sync.GetBlob(codeEntry.Text)
+						var encryptedBody string
+						var err error
+
+						if setupType == SetupTypeSetupKit {
+							encryptedBody = codeEntry.Text
+						} else {
+							encryptedBody, err = bima.Sync.GetBlob(codeEntry.Text)
+						}
+
 						if err != nil {
 							// show error
 							s.Hide()
@@ -126,12 +155,17 @@ func NewCodeSetupComponent(bima *bima.Bima) *CodeSetupComponent {
 							// Update our registry and persist to db
 							bima.Registry.Save()
 							bima.Sync.AppID = bima.Registry.AppID
+							bima.Sync.ResumeSync()
 							DrawMainUI(bima)
 						} else {
 							// Show error
 							dialog.ShowError(errors.New("Invalid password or setup code"), bima.UI.Window)
 						}
 					}()
+				}),
+				widget.NewButton("Back", func() {
+					c := NewOnboardComponent(bima)
+					bima.Push("onboard", c)
 				}),
 			),
 			layout.NewSpacer(),

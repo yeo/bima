@@ -44,7 +44,6 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 			bima.Registry.ApiURL = syncEntry.Text
 			dialog.ShowInformation("Success", "Your information is saved.", bima.UI.Window)
 		}),
-		layout.NewSpacer(),
 		widget.NewButton("Back", func() {
 			DrawCode(bima)
 		}),
@@ -77,7 +76,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	)
 
 	newDeviceButton := widget.NewHBox(
-		widget.NewButton("Generate Setup Code", func() {
+		widget.NewButton("Get A Setup Code", func() {
 			s := dialog.NewProgressInfinite("Getting quick setup code", "...", bima.UI.Window)
 			go func() {
 				// Request server, on finish
@@ -147,7 +146,10 @@ func NewSetupKitComponent(bima *bima.Bima) *SetupKitComponent {
 	s := SetupKitComponent{
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-			widget.NewLabel("Save below text into a safe place\nto bootstrap a new device\nand restore data when you have no access\nto any active installation.\n"),
+			&widget.Label{
+				Text:     "This Setup Kit allows you to bootstrap and sync data to a new device. You can always generate this again if you have access to this installation, However, you should save it to a safe place so if you ever lost access to this device, you will be able to restore data to a new device.",
+				Wrapping: fyne.TextWrapWord,
+			},
 			&widget.Entry{
 				Text:         bima.Registry.GetSetupKit(),
 				MultiLine:    true,
