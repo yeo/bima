@@ -178,7 +178,7 @@ func (r *Registry) GetSetupKit() string {
 	encryptedSecretKey := shield.Encrypt(r.SecretKey, r.MasterPassword)
 	encryptedAppID := shield.Encrypt([]byte(r.AppID), r.MasterPassword)
 
-	payload := fmt.Sprintf("{\n\"appID\":\n\"%s\",\n\"secretKey\":\n\"%s\"\n}",
+	payload := fmt.Sprintf("{\n\"appID\":\"%s\",\n\"secretKey\":\"%s\"\n}",
 		base64.StdEncoding.EncodeToString(encryptedAppID), base64.StdEncoding.EncodeToString(encryptedSecretKey))
 
 	return payload

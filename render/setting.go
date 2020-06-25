@@ -1,6 +1,7 @@
 package render
 
 import (
+	"errors"
 	//"time"
 
 	"fyne.io/fyne"
@@ -9,7 +10,7 @@ import (
 	"fyne.io/fyne/widget"
 
 	"github.com/yeo/bima/core"
-	"github.com/yeo/bima/dto"
+	//"github.com/yeo/bima/dto"
 	"github.com/yeo/bima/exporter"
 )
 
@@ -20,8 +21,10 @@ type SettingComponent struct {
 
 func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	appIDEntry := &widget.Entry{
-		Text: bima.Registry.AppID,
+		Text:     bima.Registry.AppID,
+		ReadOnly: true,
 	}
+
 	appIDWidget := widget.NewVBox(
 		widget.NewLabel("App ID"),
 		appIDEntry,
@@ -35,20 +38,10 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		syncEntry,
 	)
 
-	emailEntry := &widget.Entry{
-		Text: bima.Registry.Email,
-	}
-	email := widget.NewVBox(
-		widget.NewLabel("Email"),
-		emailEntry,
-	)
-
 	actionButtons := widget.NewHBox(
 		widget.NewButton("Save", func() {
 			bima.Registry.AppID = appIDEntry.Text
 			bima.Registry.ApiURL = syncEntry.Text
-			bima.Registry.Email = emailEntry.Text
-			dto.UpdateConfig(dto.CfgEmail, bima.Registry.Email)
 			dialog.ShowInformation("Success", "Your information is saved.", bima.UI.Window)
 		}),
 		layout.NewSpacer(),
@@ -94,7 +87,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 				s.Hide()
 				s = nil
 
-				if err == nil {
+				if err == nil && code != "" {
 					code2 := ""
 					for i, c := range code {
 						code2 += string(c)
@@ -104,7 +97,11 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 					}
 					dialog.ShowInformation("Setup Code (valid with in 10mins)", code2, bima.UI.Window)
 				} else {
-					dialog.ShowError(err, bima.UI.Window)
+					if err != nil {
+						dialog.ShowError(err, bima.UI.Window)
+					} else {
+						dialog.ShowError(errors.New("Failed to get code. Try again"), bima.UI.Window)
+					}
 				}
 			}()
 			s.Show()
@@ -118,7 +115,6 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
 	container.AddObject(appIDWidget)
-	container.AddObject(email)
 	container.AddObject(backend)
 	container.AddObject(actionButtons)
 	container.AddObject(changePasswordButton)
@@ -151,17 +147,20 @@ func NewSetupKitComponent(bima *bima.Bima) *SetupKitComponent {
 	s := SetupKitComponent{
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-			widget.NewLabel("Setup Kit.\nSave below text into a safe place\nto bootstrap a new device\nand restore data when you have no access\nto any active installation.\n"),
+			widget.NewLabel("Save below text into a safe place\nto bootstrap a new device\nand restore data when you have no access\nto any active installation.\n"),
 			&widget.Entry{
-				Text:      bima.Registry.GetSetupKit(),
-				MultiLine: true,
-			},
-			layout.NewSpacer()),
+				Text:         bima.Registry.GetSetupKit(),
+				MultiLine:    true,
+				Wrapping:     fyne.TextWrapBreak,
+				CursorColumn: 80,
+				CursorRow:    4,
+			}),
 	}
 
 	s.Container.AddObject(widget.NewButton("Back", func() {
 		DrawMainUI(s.bima)
 	}))
+	s.Container.AddObject(layout.NewSpacer())
 
 	return &s
 }

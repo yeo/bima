@@ -99,6 +99,11 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 	actionButtons := widget.NewHBox(
 		layout.NewSpacer(),
 		btn,
+		widget.NewButton("Back", func() {
+			done <- true
+			log.Debug().Str("button", "code_detail.back").Msg("Click button")
+			DrawCode(bima)
+		}),
 		layout.NewSpacer(),
 	)
 
@@ -116,15 +121,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 			layout.NewSpacer(), refreshLbl, layout.NewSpacer(),
 		),
 		actionButtons,
-		layout.NewSpacer(),
-
 		widget.NewHBox(
-			widget.NewButton("Back", func() {
-				done <- true
-				log.Debug().Str("button", "code_detail.back").Msg("Click button")
-				DrawCode(bima)
-			}),
-			layout.NewSpacer(),
 			widget.NewButton("Delete", func() {
 				dialog.ShowConfirm("Are you sure to delete?", "URL: "+token.URL+"\nName: "+token.Name, func(confirm bool) {
 					if confirm == true {

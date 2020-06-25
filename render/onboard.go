@@ -52,6 +52,8 @@ func NewOnboardComponent(bima *bima.Bima) *OnboardComponent {
 				}),
 				layout.NewSpacer(),
 				widget.NewButton("Or Restore From SetupKit", func() {
+					c := NewCodeSetupComponent(bima)
+					bima.Push("setup/code", c)
 				})),
 
 			layout.NewSpacer(),
@@ -64,6 +66,7 @@ func NewOnboardComponent(bima *bima.Bima) *OnboardComponent {
 type CodeSetupComponent struct {
 	bima      *bima.Bima
 	Container *fyne.Container
+	setupType string
 }
 
 func (p *CodeSetupComponent) Render() fyne.CanvasObject {
