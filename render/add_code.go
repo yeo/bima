@@ -27,9 +27,6 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 	codeEntry := &widget.Entry{
 		PlaceHolder: "",
 	}
-	if token.ID != "" {
-		codeEntry.Hide()
-	}
 
 	content := widget.NewVBox(
 		layout.NewSpacer(),
@@ -37,26 +34,30 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 		nameEntry,
 		canvas.NewText("URL", color.RGBA{135, 0, 16, 255}),
 		urlEntry,
-		canvas.NewText("OTP Secret", color.RGBA{135, 0, 16, 255}),
-		codeEntry,
-		widget.NewButton("Save", func() {
-			token.Name = nameEntry.Text
-			token.URL = urlEntry.Text
-			if token.ID == "" {
-				// When token is already save, we don't allow to change token anymore. One has to delete and resync
-				token.RawToken = codeEntry.Text
-			}
-
-			done(token)
-			nameEntry.SetText("")
-			urlEntry.SetText("")
-			codeEntry.SetText("")
-		}),
-		layout.NewSpacer(),
-		widget.NewButton("Close", func() {
-			done(nil)
-		}),
 	)
+
+	if token.ID == "" {
+		content.Append(canvas.NewText("OTP Secret", color.RGBA{135, 0, 16, 255}))
+		content.Append(codeEntry)
+	}
+
+	content.Append(widget.NewButton("Save", func() {
+		token.Name = nameEntry.Text
+		token.URL = urlEntry.Text
+		if token.ID == "" {
+			// When token is already save, we don't allow to change token anymore. One has to delete and resync
+			token.RawToken = codeEntry.Text
+		}
+
+		done(token)
+		nameEntry.SetText("")
+		urlEntry.SetText("")
+		codeEntry.SetText("")
+	}))
+	content.Append(layout.NewSpacer())
+	content.Append(widget.NewButton("Close", func() {
+		done(nil)
+	}))
 
 	contentLayout := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 400}), content)
 
