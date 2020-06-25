@@ -32,6 +32,7 @@ type Sync struct {
 	AppVersion string
 	apiURL     string
 	LockBox    LockBox
+	okToSync   bool
 }
 
 type CompareResponse struct {
@@ -71,12 +72,13 @@ func New(appID, appVersion, apiURL string) *Sync {
 		AppID:      appID,
 		apiURL:     apiURL,
 		AppVersion: appVersion,
+		okToSync:   false,
 	}
 }
 
 // Watch setup a timer to routily send a Sync request to serer
 func (s *Sync) Watch() {
-	ticker := time.NewTicker(15 * time.Second)
+	ticker := time.NewTicker(60 * time.Second)
 
 	for {
 		select {
@@ -84,9 +86,22 @@ func (s *Sync) Watch() {
 			return
 		case <-ticker.C:
 			//log.Debug().Msg("Disable sync for now")
-			s.Do()
+			if s.okToSync {
+				s.Do()
+			} else {
+				log.Debug().Msg("Sync is paused. Not requesting server")
+			}
 		}
 	}
+}
+
+func (s *Sync) PauseSync() {
+	s.okToSync = false
+}
+
+func (s *Sync) ResumeSync() {
+	s.okToSync = true
+	s.Do()
 }
 
 func (s *Sync) buildRequest(method, path string, payload io.Reader) (*http.Request, error) {
