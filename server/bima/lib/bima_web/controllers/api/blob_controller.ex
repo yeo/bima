@@ -30,10 +30,9 @@ defmodule BimaWeb.Api.BlobController do
 
 
   defp gen_code(payload) do
-    code = for i <- 0..12, i > 0, do: elem(@char_dicts, :rand.uniform(26))
-    IO.inspect code
+    code = for i <- 0..12, i > 0, do: elem(@char_dicts, :rand.uniform(34))
     %Blob{}
-      |> Blob.changeset(%{"payload" => payload, "ttl" => 600, "code" => Enum.join(code, "")})
+      |> Blob.changeset(%{"payload" => payload, "ttl" => 6000, "code" => Enum.join(code, "")})
       |> Repo.insert()
   end
 end

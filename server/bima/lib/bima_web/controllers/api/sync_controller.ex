@@ -91,7 +91,12 @@ defmodule BimaWeb.Api.SyncController do
       end
     end)
 
+    client_tokens_map = Map.new(client_tokens, fn token -> {token["id"], token} end)
+
+    IO.inspect(client_tokens_map)
+
     Enum.map(exist_tokens_map, fn({id, existed_token}) -> existed_token end)
+    |> Enum.filter(fn t -> !Map.has_key?(client_tokens_map, t.id) end)
   end
 
   # Given a list of token from local db of a client, and a list of removed token
