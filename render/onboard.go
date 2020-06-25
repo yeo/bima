@@ -155,7 +155,7 @@ func NewCodeSetupComponent(bima *bima.Bima, setupType string) *CodeSetupComponen
 							// Update our registry and persist to db
 							bima.Registry.Save()
 							bima.Sync.AppID = bima.Registry.AppID
-							bima.Sync.ResumeSync()
+							go bima.Sync.ResumeSync()
 							DrawMainUI(bima)
 						} else {
 							// Show error

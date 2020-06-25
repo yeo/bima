@@ -94,16 +94,6 @@ func (r *Registry) IsDebug() bool {
 	return r.debug
 }
 
-func (r *Registry) Save() error {
-	// Re-encrypt our secret key
-	dto.UpdateConfig(dto.CfgAppId, r.AppID)
-	r.encryptedSecretKey = shield.Encrypt(r.SecretKey, r.MasterPassword)
-	dto.UpdateConfig(dto.CfgSecretKey, string(r.encryptedSecretKey))
-	r.CombineEncryptionKey()
-
-	return nil
-}
-
 func (r *Registry) HasOnboard() bool {
 	return r.AppID != "" && r.encryptedSecretKey != nil
 }
@@ -120,6 +110,16 @@ func (r *Registry) CombineEncryptionKey() []byte {
 	}
 
 	return r.combineKey
+}
+
+func (r *Registry) Save() error {
+	// Re-encrypt our secret key
+	dto.UpdateConfig(dto.CfgAppId, r.AppID)
+	r.encryptedSecretKey = shield.Encrypt(r.SecretKey, r.MasterPassword)
+	dto.UpdateConfig(dto.CfgSecretKey, string(r.encryptedSecretKey))
+	r.CombineEncryptionKey()
+
+	return nil
 }
 
 func (r *Registry) SaveMasterPassword(password string) error {
@@ -142,8 +142,7 @@ func (r *Registry) SaveMasterPassword(password string) error {
 				return err
 			}
 			r.SecretKey = b
-			encryptedSecretKey := shield.Encrypt(b, r.MasterPassword)
-			dto.UpdateConfig(dto.CfgSecretKey, string(encryptedSecretKey))
+			r.Save()
 		} else {
 			// We had encryptied secret key, has the master password, attempt to decrypt the secret key itself
 			r.CombineEncryptionKey()
@@ -162,15 +161,13 @@ func (r *Registry) SaveMasterPassword(password string) error {
 	newEncryptionKey := append(r.SecretKey, []byte(password)...)
 	if err := dto.ChangePassword(r.CombineEncryptionKey(), newEncryptionKey); err == nil {
 		r.MasterPassword = []byte(password)
-		// Re-encrypt our secret key
-		encryptedSecretKey := shield.Encrypt(r.SecretKey, r.MasterPassword)
 		r.combineKey = newEncryptionKey
-		dto.UpdateConfig(dto.CfgSecretKey, string(encryptedSecretKey))
+		r.Save()
+
+		return nil
 	} else {
 		return err
 	}
-
-	return nil
 }
 
 func (r *Registry) GetSetupKit() string {

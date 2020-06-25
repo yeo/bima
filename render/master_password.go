@@ -84,12 +84,17 @@ func (p *PasswordComponent) Save() error {
 	case NewPasswordForm:
 		// Onboard form or enter password form
 		log.Debug().Str("password", p.passwordEntry.Text).Msg("Change Password")
-		p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text)
-		c := NewSecretKeyComponent(p.bima)
-		p.bima.Push("show_secret_key", c)
+		if p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text) == nil {
+			c := NewSecretKeyComponent(p.bima)
+			p.bima.Push("show_secret_key", c)
+			go p.bima.Sync.ResumeSync()
+		} else {
+			dialog.ShowInformation("Err", "Wrong password", p.bima.UI.Window)
+		}
 	case EnterPasswordForm:
 		if e := p.bima.Registry.SaveMasterPassword(p.passwordEntry.Text); e == nil {
 			DrawMainUI(p.bima)
+			go p.bima.Sync.ResumeSync()
 		} else {
 			dialog.ShowInformation("Err", "Wrong password", p.bima.UI.Window)
 		}
