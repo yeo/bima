@@ -2,9 +2,11 @@ package render
 
 import (
 	"errors"
+	"image/color"
 	//"time"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
@@ -25,7 +27,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		ReadOnly: true,
 	}
 
-	appIDWidget := widget.NewVBox(
+	appIDWidget := widget.NewHBox(
 		widget.NewLabel("App ID"),
 		appIDEntry,
 	)
@@ -33,23 +35,26 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	syncEntry := &widget.Entry{
 		Text: bima.Registry.ApiURL,
 	}
-	backend := widget.NewVBox(
+	backend := widget.NewHBox(
 		widget.NewLabel("Sync URL"),
 		syncEntry,
-	)
-
-	actionButtons := widget.NewHBox(
 		widget.NewButton("Save", func() {
 			bima.Registry.AppID = appIDEntry.Text
 			bima.Registry.ApiURL = syncEntry.Text
 			dialog.ShowInformation("Success", "Your information is saved.", bima.UI.Window)
 		}),
+	)
+
+	backButton := widget.NewHBox(
+		layout.NewSpacer(),
 		widget.NewButton("Back", func() {
 			DrawCode(bima)
 		}),
+		layout.NewSpacer(),
 	)
 
 	exportButtons := widget.NewHBox(
+		layout.NewSpacer(),
 		widget.NewButton("Export", func() {
 			// TODO: FIX this to make it run on window and write to home
 			if err := exporter.Export(bima.Registry.CombineEncryptionKey(), "/tmp/bima.csv"); err == nil {
@@ -66,16 +71,20 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 				dialog.ShowInformation("Err", "Import fail", bima.UI.Window)
 			}
 		}),
+		layout.NewSpacer(),
 	)
 
 	changePasswordButton := widget.NewHBox(
-		widget.NewButton("Change Password", func() {
+		layout.NewSpacer(),
+		widget.NewButton("Change Master Password", func() {
 			p := NewPasswordComponent(bima, ChangePasswordForm)
 			bima.Push("changepassword", p)
 		}),
+		layout.NewSpacer(),
 	)
 
 	newDeviceButton := widget.NewHBox(
+		layout.NewSpacer(),
 		widget.NewButton("Get A Setup Code", func() {
 			s := dialog.NewProgressInfinite("Getting quick setup code", "...", bima.UI.Window)
 			go func() {
@@ -110,16 +119,18 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 			c := NewSetupKitComponent(bima)
 			bima.Push("changepassword", c)
 		}),
+		layout.NewSpacer(),
 	)
 
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1))
 	container.AddObject(appIDWidget)
 	container.AddObject(backend)
-	container.AddObject(actionButtons)
+	container.AddObject(canvas.NewLine(color.RGBA{34, 40, 49, 50}))
 	container.AddObject(changePasswordButton)
 	container.AddObject(exportButtons)
 	container.AddObject(newDeviceButton)
 	container.AddObject(layout.NewSpacer())
+	container.AddObject(backButton)
 
 	s := SettingComponent{
 		Container: container,

@@ -82,32 +82,31 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 		}
 	}()
 
-	var btn *widget.Button
-	btn = widget.NewButton("Copy", func() {
+	var copyButton *widget.Button
+	copyButton = widget.NewButton("Copy", func() {
 		w.Clipboard().SetContent(otpCode)
-		btn.SetText("Copied")
-		btn.Style = widget.PrimaryButton
+		copyButton.SetText("Copied")
+		copyButton.Style = widget.PrimaryButton
 		timer2 := time.NewTimer(time.Second * 3)
 		go func() {
 			<-timer2.C
-			if btn != nil {
-				btn.SetText("Copy")
+			if copyButton != nil {
+				copyButton.SetText("Copy")
 			}
+			timer2 = nil
 		}()
 	})
 
-	actionButtons := widget.NewHBox(
-		layout.NewSpacer(),
-		btn,
+	backButton := widget.NewHBox(
 		widget.NewButton("Back", func() {
 			done <- true
 			log.Debug().Str("button", "code_detail.back").Msg("Click button")
 			DrawCode(bima)
 		}),
-		layout.NewSpacer(),
 	)
 
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+		backButton,
 		widget.NewHBox(
 			layout.NewSpacer(), urlLbl, layout.NewSpacer(),
 		),
@@ -115,13 +114,13 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 			layout.NewSpacer(), nameLbl, layout.NewSpacer(),
 		),
 		widget.NewHBox(
-			layout.NewSpacer(), otpLbl, layout.NewSpacer(),
+			layout.NewSpacer(), otpLbl, copyButton, layout.NewSpacer(),
 		),
 		widget.NewHBox(
 			layout.NewSpacer(), refreshLbl, layout.NewSpacer(),
 		),
-		actionButtons,
 		widget.NewHBox(
+			layout.NewSpacer(),
 			widget.NewButton("Delete", func() {
 				dialog.ShowConfirm("Are you sure to delete?", "URL: "+token.URL+"\nName: "+token.Name, func(confirm bool) {
 					if confirm == true {
@@ -132,6 +131,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 				}, bima.UI.Window)
 			}),
 			DrawEditCode(bima, token),
+			layout.NewSpacer(),
 		),
 		layout.NewSpacer(),
 	)

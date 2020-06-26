@@ -121,9 +121,11 @@ func NewPasswordComponent(bima *bima.Bima, formType PasswordFormType) *PasswordC
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1)),
 		passwordEntry: &widget.Entry{
 			PlaceHolder: passwordLabel,
+			Password:    true,
 		},
 		confirmPasswordEntry: &widget.Entry{
 			PlaceHolder: "Confirm Password",
+			Password:    true,
 		},
 	}
 	p.actionButton = widget.NewButton(actionLabel, func() {
