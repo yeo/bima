@@ -23,8 +23,9 @@ type SettingComponent struct {
 
 func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	appIDEntry := &widget.Entry{
-		Text:     bima.Registry.AppID,
-		ReadOnly: true,
+		Text:         bima.Registry.AppID,
+		ReadOnly:     true,
+		CursorColumn: 12,
 	}
 
 	appIDWidget := widget.NewHBox(

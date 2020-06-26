@@ -95,7 +95,9 @@ func (p *CodeSetupComponent) Remove() {
 
 func NewCodeSetupComponent(bima *bima.Bima, setupType string) *CodeSetupComponent {
 	codeEntry := widget.NewEntry()
-	masterPassword := widget.NewEntry()
+	masterPassword := &widget.Entry{
+		Password: true,
+	}
 
 	label := "On the other app, go to\nSetting > Generate Setup Code"
 	if setupType == SetupTypeSetupKit {

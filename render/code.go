@@ -98,15 +98,16 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 	})
 
 	backButton := widget.NewHBox(
+		layout.NewSpacer(),
 		widget.NewButton("Back", func() {
 			done <- true
 			log.Debug().Str("button", "code_detail.back").Msg("Click button")
 			DrawCode(bima)
 		}),
+		layout.NewSpacer(),
 	)
 
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-		backButton,
 		widget.NewHBox(
 			layout.NewSpacer(), urlLbl, layout.NewSpacer(),
 		),
@@ -134,6 +135,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 			layout.NewSpacer(),
 		),
 		layout.NewSpacer(),
+		backButton,
 	)
 
 	return &CodeDetailComponent{
