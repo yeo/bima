@@ -9,13 +9,11 @@
   <%= text_input f, :email %>
   <%= error_tag f, :email %>
 
-  <%= label f, :encrypted_password %>
-  <%= text_input f, :encrypted_password %>
-  <%= error_tag f, :encrypted_password %>
+  <%= password_input f, :password, placeholder: "Password" %>
+  <%= error_tag f, :password %>
 
-  <%= label f, :salt %>
-  <%= text_input f, :salt %>
-  <%= error_tag f, :salt %>
+  <%= password_input f, :password_confirmation, placeholder: "Confirm Password" %>
+  <%= error_tag f, :password_confirmation %>
 
   <div>
     <%= submit "Save" %>

@@ -40,6 +40,13 @@ defmodule BimaWeb.Endpoint do
     pass: ["*/*"],
     json_decoder: Phoenix.json_library()
 
+  plug Plug.Static,
+    at: "/kaffy",
+    from: :kaffy,
+    gzip: false,
+    only: ~w(assets)
+
+
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options

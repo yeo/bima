@@ -29,6 +29,11 @@ config :bima_versions,
   latest: [1,1,2],
   url: %{mac: 'macurl', linux: 'linuxurl', window: 'windowurl'}
 
+config :kaffy,
+  otp_app: :bima,
+  ecto_repo: Bima.Repo,
+  router: BimaWeb.Router
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

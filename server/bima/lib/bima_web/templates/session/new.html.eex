@@ -1,0 +1,18 @@
+<section class='container box'>
+  <div class='row'>
+    <div class='card'>
+      <div class='card-content'>
+        <span class='card-title'>LOGIN</span>
+        <div class='row card-form'>
+          <%= form_for @conn, Routes.session_path(@conn, :new), [as: :session], fn f -> %>
+            <%= text_input f, :email, placeholder: "Email" %>
+            <%= password_input f, :password, placeholder: "Password" %>
+            <%= submit "Submit", class: "btn right secondary-color" %>
+            <%= link "Register", to: Routes.user_path(@conn, :new), class: "btn secondary-color" %>
+          <% end %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

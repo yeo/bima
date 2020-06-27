@@ -11,10 +11,10 @@ defmodule BimaWeb.Api.MeController do
     [app_id | _ ] = Conn.get_req_header(conn, "appid")
     [app_version | _ ] = Conn.get_req_header(conn, "appversion")
 
-    [major, minor, patch] = String.split(app_version, ".")
-
     IO.inspect app_id, label: 'app_id'
     IO.inspect app_version, label: 'app_version'
+
+    [major, minor, patch] = String.split(app_version, ".") |> Enum.map(&String.to_integer/1)
 
     #changes = App.changeset(%App{}, %{id: app_id})
     app = Apps.ensure_app(app_id)
@@ -26,11 +26,28 @@ defmodule BimaWeb.Api.MeController do
       db: app.db_version,
     }
 
-    if true do
-      resp = Map.put(resp, :update, %{version: "1.2", url: "go here to download"})
-    end
+    resp = if check_version(major, minor, patch), do: Map.put(resp, :update, %{version: "1.2", url: "go here to download"}), else: resp
 
-    conn
-    |> json(resp)
+    conn |> json(resp)
+  end
+
+  def check_version(major, minor, patch) do
+    [current_major, current_minor, current_patch] = Application.get_env(:bima_versions, :latest)
+    cond do
+      current_major > major ->
+        true
+      current_major < major ->
+        false
+      current_minor > minor ->
+        true
+      current_minor < minor ->
+        false
+      current_patch > patch ->
+        true
+      current_patch < patch ->
+        false
+      true ->
+        false
+    end
   end
 end

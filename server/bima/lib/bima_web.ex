@@ -42,6 +42,9 @@ defmodule BimaWeb do
       import BimaWeb.ErrorHelpers
       import BimaWeb.Gettext
       alias BimaWeb.Router.Helpers, as: Routes
+
+      # Add helper to allow check user signedin
+      import Bima.Accounts.Auth, only: [signed_in?: 1]
     end
   end
 

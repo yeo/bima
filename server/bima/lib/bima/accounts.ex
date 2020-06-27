@@ -101,4 +101,10 @@ defmodule Bima.Accounts do
   def change_user(%User{} = user) do
     User.changeset(user, %{})
   end
+
+  def promote_to_admin(user) do
+    user
+    |> User.to_admin_changeset
+    |> Repo.update()
+  end
 end

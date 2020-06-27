@@ -19,6 +19,9 @@
             <li class="navigation-item"><a href="#pricing">Price</a></li>
             <li class="navigation-item"><a href="#faq">FAQ</a></li>
             <li class="navigation-item"><a class="button" href="#download">Download</a></li>
+            <%= if signed_in?(@conn) do %>
+              <li class="navigation-item"><%= link "Logout", to: Routes.session_path(@conn, :delete), method: :delete %></li>
+            <% end %>
           </ul>
         </nav>
 
