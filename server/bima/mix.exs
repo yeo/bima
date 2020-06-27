@@ -46,7 +46,7 @@ defmodule Bima.MixProject do
       {:stripity_stripe, "~> 2.0.0"},
       {:comeonin, "~> 4.0"},
       {:bcrypt_elixir, "~> 1.0"},
-      {:torch, "~> 3.4"},
+      {:kaffy, "~> 0.8.0"}
     ]
   end
 

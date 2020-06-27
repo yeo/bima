@@ -25,13 +25,9 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-config :torch,
-  otp_app: :bima,
-  template_format: "eex"
-
 config :bima_versions,
   latest: [1,1,2],
-  download: %{mac: 'macurl', linux: 'linuxurl', window: 'windowurl'}
+  url: %{mac: 'macurl', linux: 'linuxurl', window: 'windowurl'}
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
