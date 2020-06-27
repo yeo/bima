@@ -9,17 +9,13 @@ defmodule BimaWeb.Plugs.Auth do
   def call(conn, opts) do
     if user_id = Plug.Conn.get_session(conn, :current_user_id) do
       current_user = Accounts.get_user!(user_id)
-      if opts[:admin] do
-        if current_user.admin do
-          conn |> assign(:current_user, current_user)
-        else
-          conn
-          |> put_flash(:info, "You are not an admin.")
-          |> redirect(to: "/")
-          |> halt()
-        end
-      else
+      if !opts[:admin] || (opts[:admin] && current_user.admin) do
         conn |> assign(:current_user, current_user)
+      else
+        conn
+        |> put_flash(:info, "You are not an admin.")
+        |> redirect(to: "/")
+        |> halt()
       end
     else
       conn
