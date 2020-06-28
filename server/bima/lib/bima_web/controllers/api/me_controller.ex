@@ -19,7 +19,6 @@ defmodule BimaWeb.Api.MeController do
     #changes = App.changeset(%App{}, %{id: app_id})
     app = Apps.ensure_app(app_id)
     IO.inspect app, label: 'app'
-    Apps.bump_db(app_id)
 
     resp = %{
       news: [%{body: "this is a test", url: "here", id: 1}],

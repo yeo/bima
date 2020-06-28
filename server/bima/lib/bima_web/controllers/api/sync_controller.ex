@@ -2,7 +2,7 @@ defmodule BimaWeb.Api.SyncController do
   use BimaWeb, :controller
 
   import Ecto.Query
-  alias Bima.{Repo, Token}
+  alias Bima.{Repo, Token, Apps}
 
   alias Plug.Conn
 
@@ -12,7 +12,7 @@ defmodule BimaWeb.Api.SyncController do
 
     # Apply the removed token to our db
     # This need to be done first to avoid client revert each others
-    removed_tokens = sync_remove(client_submit_tokens, request_removed_tokens)
+    removed_tokens = sync_remove(client_submit_tokens, request_removed_tokens, app_id)
 
     # Refresh state to see what we have on our db right now
     current_tokens_map = token_list_as_map(app_id)
@@ -57,7 +57,9 @@ defmodule BimaWeb.Api.SyncController do
           changeset = exist_token
           |> Ecto.Changeset.change(name: new_token["name"], url: new_token["url"], version: new_token["version"])
           case Repo.update(changeset) do
-            {:ok, token} -> %{token | token: nil}
+            {:ok, token} ->
+              Apps.bump_db(app_id)
+              %{token | token: nil}
           end
 
         exist_token.version > new_token["version"] ->
@@ -86,7 +88,9 @@ defmodule BimaWeb.Api.SyncController do
       if !check_removed_token do
         changeset = Token.changeset(%Token{app_id: app_id}, new_token)
         case Repo.insert(changeset) do
-          {:ok, token} -> token
+          {:ok, token} ->
+            Apps.bump_db(app_id)
+            token
         end
       end
     end)
@@ -101,14 +105,18 @@ defmodule BimaWeb.Api.SyncController do
 
   # Given a list of token from local db of a client, and a list of removed token
   # Return a list of token that is removed, either from client request or removed by other clients that has same app id
-  defp sync_remove(current_client_tokens, request_removed_tokens) do
+  defp sync_remove(current_client_tokens, request_removed_tokens, app_id) do
     removed_tokens = Enum.map(request_removed_tokens, fn request_token ->
       token = Repo.get(Token, request_token["id"])
       if token do
-        r = Ecto.Changeset.cast(token, %{deleted_at: DateTime.utc_now(), version: token.version + 1}, [:deleted_at, :version])
-            |> Repo.update!()
+        r =
+          Ecto.Changeset.cast(token, %{deleted_at: DateTime.utc_now(), version: token.version + 1}, [:deleted_at, :version])
+          |> Repo.update!()
 
-            %{id: token.id, version: token.version}
+        if r do
+          Apps.bump_db(app_id)
+        end
+        %{id: token.id, version: token.version}
       else
         %{id: request_token["id"], version: -1}
       end

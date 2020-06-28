@@ -21,7 +21,7 @@ defmodule Bima.Apps do
   end
 
   def ensure_app(id) do
-    case get_app!(id) do
+    case Repo.get(App, id) do
       nil ->
         %App{}
         |> App.changeset(%{id: id})
