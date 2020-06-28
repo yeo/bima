@@ -1,23 +1,16 @@
 defmodule Bima.News do
   @moduledoc """
-  The Accounts context.
+  The News context.
   """
 
   import Ecto.Query, warn: false
   alias Bima.Repo
 
-  alias Bima.Client.App
+  alias Bima.Client.News
 
-  def list_apps do
-    Repo.all(App)
+  def list_news do
+    Repo.all(News)
   end
 
-  def get_app!(id), do: Repo.get!(App, id)
-
-  def list_news(attrs \\ %{}) do
-    %App{}
-    |> App.changeset(attrs)
-    |> Repo.insert()
-  end
-
+  def get_news!(id), do: Repo.get!(News, id)
 end

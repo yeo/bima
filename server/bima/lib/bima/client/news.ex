@@ -11,7 +11,7 @@ defmodule Bima.Client.News do
   @doc false
   def changeset(news, attrs) do
     news
-    |> cast(attrs, [:id, :body])
-    |> validate_required([:id, :body])
+    |> cast(attrs, [:body])
+    |> validate_required([:body])
   end
 end
