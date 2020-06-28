@@ -17,10 +17,10 @@ jobs:
     - name: Build docker image
       run: |
         cd server/bima
-        docker build -t docker.pkg.github.com/yeo/bima:"$GITHUB_SHA" \
+        docker build -t docker.pkg.github.com/yeo/bima/server:"$GITHUB_SHA" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" .
-        docker tag docker.pkg.github.com/yeo/bima:$GITHUB_SHA docker.pkg.github.com/yeo/bima/server:latest
+        docker tag docker.pkg.github.com/yeo/bima/server:$GITHUB_SHA docker.pkg.github.com/yeo/bima/server:latest
 
     - name: Docker login
       run: |
