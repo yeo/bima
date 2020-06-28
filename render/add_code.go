@@ -81,7 +81,7 @@ func DrawNewCode(bima *bima.Bima) *widget.Button {
 				popup = nil
 			}
 			DrawCode(bima)
-			go bima.Sync.Do()
+			bima.Sync.BumpDB()
 		} else {
 			// TODO: Error handler
 		}
@@ -107,7 +107,7 @@ func DrawEditCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 		log.Println("Delete at for token", token.DeletedAt)
 
 		if err := dto.UpdateSecret(token); err == nil {
-			go bima.Sync.Do()
+			bima.Sync.BumpDB()
 			if popup != nil {
 				popup.Hide()
 			}

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	AppVersion = "0.1"
+	AppVersion = "0.1.0"
 )
 
 type AppState int

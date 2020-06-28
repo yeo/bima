@@ -33,6 +33,7 @@ type Sync struct {
 	apiURL     string
 	LockBox    LockBox
 	okToSync   bool
+	dbVersion  int
 }
 
 type CompareResponse struct {
@@ -63,6 +64,10 @@ type BlobResponse struct {
 	Payload string `json:"payload"`
 }
 
+type MeResponse struct {
+	DBVersion int `json:"db"`
+}
+
 func New(appID, appVersion, apiURL string) *Sync {
 	return &Sync{
 		Client: &http.Client{
@@ -73,19 +78,20 @@ func New(appID, appVersion, apiURL string) *Sync {
 		apiURL:     apiURL,
 		AppVersion: appVersion,
 		okToSync:   false,
+		dbVersion:  0,
 	}
 }
 
 // Watch setup a timer to routily send a Sync request to serer
 func (s *Sync) Watch() {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(15 * time.Second)
 
+	go s.Do()
 	for {
 		select {
 		case <-s.Done:
 			return
 		case <-ticker.C:
-			//log.Debug().Msg("Disable sync for now")
 			if s.okToSync {
 				s.Do()
 			} else {
@@ -111,8 +117,8 @@ func (s *Sync) buildRequest(method, path string, payload io.Reader) (*http.Reque
 	log.Debug().Str("url", url).Msg("Build Request")
 	req.Header.Set("User-Agent", "bima")
 	req.Header.Set("AppID", s.AppID)
+	req.Header.Set("AppVersion", s.AppVersion)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("App-Version", s.AppVersion)
 	//req.Header.Set("Data-Version", "100")
 	return req, err
 }
@@ -141,7 +147,39 @@ func (s *Sync) Compare() *CompareResponse {
 	return &diff
 }
 
-// Currently this use http sync. but we should switch to websocket
+// Getme pings server for update and annoucement
+// This is basically the only way for us to communicate with user
+func (s *Sync) GetMe() (*MeResponse, error) {
+	req, err := s.buildRequest("GET", "me", nil)
+
+	resp, err := s.Client.Do(req)
+
+	if err != nil {
+		log.Printf("Cannot get /me from backend.")
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	log.Debug().Str("body", string(body)).Msg("Get Me Response")
+	var me MeResponse
+	err = json.Unmarshal(body, &me)
+	if err != nil {
+		return nil, err
+	}
+
+	return &me, nil
+}
+
+func (s *Sync) BumpDB() {
+	s.dbVersion += 1
+
+	// Once we bump db, immediately sync
+	go s.Do()
+}
+
+// Currently this uses http sync. but we should switch to websocket
 func (s *Sync) Do() {
 	// Send a POST request with all of our token to backend
 	// Backend return a diff of action to let us know what to do.
@@ -149,6 +187,23 @@ func (s *Sync) Do() {
 	// - Remove from server
 	// - Updated field
 	// - Add new
+	if s.AppID == "" || s.AppVersion == "" {
+		log.Printf("App is not ready to sync. Missing app id or app version")
+		return
+	}
+
+	me, err := s.GetMe()
+	if err != nil {
+		log.Error().Err(err).Msg("Cannot fetch /me")
+		return
+	}
+
+	if s.dbVersion == me.DBVersion {
+		log.Info().Int("me", me.DBVersion).Int("sync", s.dbVersion).Msg("local db version is same as remote, ignore sync")
+		return
+	}
+	log.Info().Int("me", me.DBVersion).Int("sync", s.dbVersion).Msg("local db version is different from remote, perform sync")
+
 	tokens, err := dto.LoadTokens()
 	if err != nil {
 		log.Printf("Cannot fetch token")
@@ -207,6 +262,8 @@ func (s *Sync) Do() {
 				dto.CommitDeleteSecret(t.ID)
 			}
 		}
+
+		s.dbVersion = me.DBVersion
 	}
 }
 
