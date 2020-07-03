@@ -31,7 +31,7 @@ defmodule BimaWeb.Api.MeController do
   end
 
   def check_version(major, minor, patch) do
-    [current_major, current_minor, current_patch] = Application.get_env(:bima_versions, :latest)
+    [latest: [current_major, current_minor, current_patch], url: _] = Application.get_env(:bima, :bima_version)
     cond do
       current_major > major ->
         true

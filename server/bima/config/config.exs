@@ -25,7 +25,7 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-config :bima_versions,
+config :bima, :bima_version,
   latest: [1,1,2],
   url: %{mac: 'macurl', linux: 'linuxurl', window: 'windowurl'}
 
