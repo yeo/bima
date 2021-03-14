@@ -221,6 +221,8 @@ func (s *Sync) Do() {
 		Removed: removedTokens,
 	}
 
+	log.Printf("sync request %v", syncRequest)
+
 	payload, err := json.Marshal(syncRequest)
 	if err != nil {
 		log.Printf("Cannot marshal", tokens)
