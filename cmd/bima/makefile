@@ -1,7 +1,7 @@
 tag ?= v0.1.0
 
 build:
-	go build -o bima
+	go build -mod=mod -o bima
 	fyne package -os darwin -icon ../../assets/icon.png
 	rm -rf ~/Applications/bima.app
 	mv bima.app ~/Applications
