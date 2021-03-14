@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 	"github.com/pquerna/otp/totp"
 	"github.com/rs/zerolog/log"
 
@@ -86,7 +87,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 	copyButton = widget.NewButton("Copy", func() {
 		w.Clipboard().SetContent(otpCode)
 		copyButton.SetText("Copied")
-		copyButton.Style = widget.PrimaryButton
+		//copyButton.Style = widget.PrimaryButton
 		timer2 := time.NewTimer(time.Second * 3)
 		go func() {
 			<-timer2.C
@@ -97,7 +98,7 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 		}()
 	})
 
-	backButton := widget.NewHBox(
+	backButton := container.NewHBox(
 		layout.NewSpacer(),
 		widget.NewButton("Back", func() {
 			done <- true
@@ -108,19 +109,19 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 	)
 
 	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-		widget.NewHBox(
+		container.NewHBox(
 			layout.NewSpacer(), urlLbl, layout.NewSpacer(),
 		),
-		widget.NewHBox(
+		container.NewHBox(
 			layout.NewSpacer(), nameLbl, layout.NewSpacer(),
 		),
-		widget.NewHBox(
+		container.NewHBox(
 			layout.NewSpacer(), otpLbl, copyButton, layout.NewSpacer(),
 		),
-		widget.NewHBox(
+		container.NewHBox(
 			layout.NewSpacer(), refreshLbl, layout.NewSpacer(),
 		),
-		widget.NewHBox(
+		container.NewHBox(
 			layout.NewSpacer(),
 			widget.NewButton("Delete", func() {
 				dialog.ShowConfirm("Are you sure to delete?", "URL: "+token.URL+"\nName: "+token.Name, func(confirm bool) {
@@ -146,8 +147,9 @@ func NewCodeDetailComponent(bima *bima.Bima, tokenID string) *CodeDetailComponen
 }
 
 type ListCodeComponent struct {
-	bima          *bima.Bima
-	codeContainer *widget.Group
+	bima *bima.Bima
+	// TODO: 2.0 fix
+	codeContainer *fyne.Container
 	Container     *fyne.Container
 
 	done       chan (bool)
@@ -186,7 +188,9 @@ func (c *ListCodeComponent) renderCode() {
 	bima := c.bima
 	tokens := c.bima.AppModel.Tokens
 
-	codeContainer := widget.NewGroupWithScroller("Tokens")
+	//codeContainer := widget.NewGroupWithScroller("Tokens")
+	// TODO: 2.0 fix
+	codeContainer := container.NewVBox()
 
 	c.codeFilter = strings.Trim(bima.AppModel.FilterText, " ")
 
@@ -209,9 +213,9 @@ func (c *ListCodeComponent) renderCode() {
 		urlLbl.TextSize = 17
 
 		nameLbl := canvas.NewText(token.Name, color.RGBA{54, 79, 107, 255})
-		row := widget.NewVBox(
-			widget.NewHBox(urlLbl),
-			widget.NewHBox(
+		row := container.NewVBox(
+			container.NewHBox(urlLbl),
+			container.NewHBox(
 				nameLbl,
 				layout.NewSpacer(),
 				viewButton,
@@ -220,10 +224,11 @@ func (c *ListCodeComponent) renderCode() {
 			canvas.NewLine(color.RGBA{34, 40, 49, 50}),
 		)
 
-		codeContainer.Append(row)
+		codeContainer.Add(row)
 	}
 
-	lastRow := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer)
+	//lastRow := fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.NewSize(320, 560)), codeContainer)
+	lastRow := fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.NewSize(320, 560)), container.NewVScroll(codeContainer))
 
 	// TODO: See if we can avoid setting to nil and check memory leak
 	c.Container.Objects[1] = nil
@@ -240,10 +245,14 @@ func NewListCodeComponent(bima *bima.Bima) *ListCodeComponent {
 		bima.AppModel.Tokens = []*dto.Token{}
 	}
 
-	codeContainer := widget.NewGroupWithScroller("Tokens")
+	//codeContainer := widget.NewGroupWithScroller("Tokens")
+	// TODO: 2.0 fix
+	codeContainer := container.NewVBox()
+
 	c := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
 		header,
-		fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.NewSize(320, 560)), codeContainer))
+		container.NewVScroll(codeContainer))
+	//fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.NewSize(320, 560)), container.NewVScroll(codeContainer)))
 
 	p := &ListCodeComponent{
 		bima:          bima,

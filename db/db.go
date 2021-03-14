@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 	"os/user"
 
@@ -22,12 +21,16 @@ func fileExists(filename string) bool {
 }
 
 func Setup(dbFile string) (*sql.DB, error) {
+	var dbDir string
 	user, err := user.Current()
+
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		// Load from ios
+		// dbDir = iosDocumentPath() + "/.bima"
+	} else {
+		dbDir = user.HomeDir + "/.bima"
 	}
 
-	dbDir := user.HomeDir + "/.bima"
 	os.MkdirAll(dbDir, os.ModePerm)
 
 	dbPath := dbDir + "/" + dbFile

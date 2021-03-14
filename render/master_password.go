@@ -1,10 +1,11 @@
 package render
 
 import (
-	"fyne.io/fyne"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 	"github.com/rs/zerolog/log"
 
 	"github.com/yeo/bima/core"
@@ -132,27 +133,27 @@ func NewPasswordComponent(bima *bima.Bima, formType PasswordFormType) *PasswordC
 		p.Save()
 	})
 
-	passwordForm := widget.NewVBox(
+	passwordForm := container.NewVBox(
 		layout.NewSpacer(),
 	)
 
 	if formType == ChangePasswordForm || formType == NewPasswordForm {
-		passwordForm.Append(widget.NewLabel("Pick a password to encrypt your data.\nIf you forgot this password,\nyour data is lost forever."))
+		passwordForm.Add(widget.NewLabel("Pick a password to encrypt your data.\nIf you forgot this password,\nyour data is lost forever."))
 	} else {
-		passwordForm.Append(widget.NewLabel("Enter password to decrypt your token\n"))
+		passwordForm.Add(widget.NewLabel("Enter password to decrypt your token\n"))
 	}
 
-	passwordForm.Append(p.passwordEntry)
+	passwordForm.Add(p.passwordEntry)
 
 	if formType == ChangePasswordForm || formType == NewPasswordForm {
-		passwordForm.Append(p.confirmPasswordEntry)
+		passwordForm.Add(p.confirmPasswordEntry)
 	}
 
-	passwordForm.Append(p.actionButton)
-	passwordForm.Append(layout.NewSpacer())
+	passwordForm.Add(p.actionButton)
+	passwordForm.Add(layout.NewSpacer())
 
 	if p.formType == ChangePasswordForm {
-		passwordForm.Append(
+		passwordForm.Add(
 			widget.NewButton("Back", func() {
 				DrawCode(bima)
 			}))

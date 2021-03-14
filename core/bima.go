@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	//"os"
 
-	"fyne.io/fyne"
+	"fyne.io/fyne/v2"
 	//"fyne.io/fyne/widget"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

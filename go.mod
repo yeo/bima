@@ -1,14 +1,16 @@
 module github.com/yeo/bima
 
-go 1.13
+go 1.16
 
 require (
-	fyne.io/fyne v1.3.0
+	fyne.io/fyne/v2 v2.0.1
+	github.com/akavel/rsrc v0.9.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/github-release/github-release v0.8.0 // indirect
 	github.com/go-gl/glfw v0.0.0-20191125211704-12ad95a8df72 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/inconshreveable/log15 v0.0.0-20200109203555-b30bc20e4fd1 // indirect
+	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20200429221318-0d2892b400f8 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
@@ -20,5 +22,6 @@ require (
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20200711155855-7342f9734a7d // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )

@@ -4,9 +4,10 @@ import (
 	//"os"
 	//"time"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 
 	"github.com/rs/zerolog/log"
 
@@ -41,8 +42,8 @@ func NewHeaderComponent(bima *bima.Bima) *HeaderComponent {
 		bima.Push("settings", s)
 	})
 
-	headerWidget := widget.NewHBox(searchBox, layout.NewSpacer(), addButton, settingButton)
-	container := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 50}), headerWidget)
+	headerWidget := container.NewHBox(searchBox, layout.NewSpacer(), addButton, settingButton)
+	container := fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.Size{300, 50}), headerWidget)
 
 	h := HeaderComponent{
 		bima:      bima,

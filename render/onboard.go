@@ -7,11 +7,12 @@ import (
 	//"fmt"
 	"image/color"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 	//"github.com/rs/zerolog/log"
 
 	"github.com/yeo/bima/core"
@@ -45,7 +46,7 @@ func NewOnboardComponent(bima *bima.Bima) *OnboardComponent {
 	p := OnboardComponent{
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
-			widget.NewVBox(
+			container.NewVBox(
 				layout.NewSpacer(),
 				widget.NewButton("Starting from scratch", func() {
 					c := NewPasswordComponent(bima, NewPasswordForm)
@@ -108,7 +109,7 @@ func NewCodeSetupComponent(bima *bima.Bima, setupType string) *CodeSetupComponen
 		bima: bima,
 		Container: fyne.NewContainerWithLayout(layout.NewGridLayout(1),
 			layout.NewSpacer(),
-			widget.NewVBox(
+			container.NewVBox(
 				widget.NewLabel(label),
 				codeEntry,
 				layout.NewSpacer(),

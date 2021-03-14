@@ -4,10 +4,11 @@ import (
 	"image/color"
 	"log"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 
 	"github.com/yeo/bima/core"
 	"github.com/yeo/bima/dto"
@@ -28,7 +29,7 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 		PlaceHolder: "",
 	}
 
-	content := widget.NewVBox(
+	content := container.NewVBox(
 		layout.NewSpacer(),
 		canvas.NewText("Name", color.RGBA{135, 0, 16, 255}),
 		nameEntry,
@@ -37,11 +38,11 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 	)
 
 	if token.ID == "" {
-		content.Append(canvas.NewText("OTP Secret", color.RGBA{135, 0, 16, 255}))
-		content.Append(codeEntry)
+		content.Add(canvas.NewText("OTP Secret", color.RGBA{135, 0, 16, 255}))
+		content.Add(codeEntry)
 	}
 
-	content.Append(widget.NewButton("Save", func() {
+	content.Add(widget.NewButton("Save", func() {
 		token.Name = nameEntry.Text
 		token.URL = urlEntry.Text
 		if token.ID == "" {
@@ -54,12 +55,12 @@ func DrawFormCode(bima *bima.Bima, token *dto.Token, done func(token *dto.Token)
 		urlEntry.SetText("")
 		codeEntry.SetText("")
 	}))
-	content.Append(layout.NewSpacer())
-	content.Append(widget.NewButton("Close", func() {
+	content.Add(layout.NewSpacer())
+	content.Add(widget.NewButton("Close", func() {
 		done(nil)
 	}))
 
-	contentLayout := fyne.NewContainerWithLayout(layout.NewFixedGridLayout(fyne.Size{300, 400}), content)
+	contentLayout := fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.Size{300, 400}), content)
 
 	return contentLayout
 }

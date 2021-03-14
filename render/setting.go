@@ -5,11 +5,12 @@ import (
 	"image/color"
 	//"time"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 
 	"github.com/yeo/bima/core"
 	//"github.com/yeo/bima/dto"
@@ -23,12 +24,13 @@ type SettingComponent struct {
 
 func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	appIDEntry := &widget.Entry{
-		Text:         bima.Registry.AppID,
-		ReadOnly:     true,
+		Text: bima.Registry.AppID,
+		// TODO: Disableable
+		//ReadOnly:     true,
 		CursorColumn: 12,
 	}
 
-	appIDWidget := widget.NewHBox(
+	appIDWidget := container.NewHBox(
 		widget.NewLabel("App ID"),
 		appIDEntry,
 	)
@@ -36,7 +38,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 	syncEntry := &widget.Entry{
 		Text: bima.Registry.ApiURL,
 	}
-	backend := widget.NewHBox(
+	backend := container.NewHBox(
 		widget.NewLabel("Sync URL"),
 		syncEntry,
 		widget.NewButton("Save", func() {
@@ -46,7 +48,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		}),
 	)
 
-	backButton := widget.NewHBox(
+	backButton := container.NewHBox(
 		layout.NewSpacer(),
 		widget.NewButton("Back", func() {
 			DrawCode(bima)
@@ -54,7 +56,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		layout.NewSpacer(),
 	)
 
-	exportButtons := widget.NewHBox(
+	exportButtons := container.NewHBox(
 		layout.NewSpacer(),
 		widget.NewButton("Export", func() {
 			// TODO: FIX this to make it run on window and write to home
@@ -75,7 +77,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		layout.NewSpacer(),
 	)
 
-	changePasswordButton := widget.NewHBox(
+	changePasswordButton := container.NewHBox(
 		layout.NewSpacer(),
 		widget.NewButton("Change Master Password", func() {
 			p := NewPasswordComponent(bima, ChangePasswordForm)
@@ -84,7 +86,7 @@ func NewSettingComponent(bima *bima.Bima) *SettingComponent {
 		layout.NewSpacer(),
 	)
 
-	newDeviceButton := widget.NewHBox(
+	newDeviceButton := container.NewHBox(
 		layout.NewSpacer(),
 		widget.NewButton("Get A Setup Code", func() {
 			s := dialog.NewProgressInfinite("Getting quick setup code", "...", bima.UI.Window)
