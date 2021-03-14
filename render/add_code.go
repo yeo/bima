@@ -89,6 +89,7 @@ func DrawNewCode(bima *bima.Bima) *widget.Button {
 	})
 	addButton := widget.NewButton("Add", func() {
 		popup = widget.NewModalPopUp(content, canvas)
+		popup.Show()
 	})
 
 	return addButton
@@ -119,5 +120,6 @@ func DrawEditCode(bima *bima.Bima, token *dto.Token) *widget.Button {
 
 	return widget.NewButton("Edit", func() {
 		popup = widget.NewModalPopUp(content, canvas)
+		popup.Show()
 	})
 }
